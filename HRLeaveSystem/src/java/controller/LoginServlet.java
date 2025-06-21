@@ -33,20 +33,33 @@ public class LoginServlet extends HttpServlet {
             User user = userDAO.login(username, password);
 
             if (user != null) {
-                // Bước 2: Lấy danh sách vai trò
+                // Bước 2: Lấy danh sách vai trò của người dùng
                 List<Role> roles = roleDAO.getRolesByUser(user.getUserId());
+
+                // Bước 2.1: Sắp xếp danh sách vai trò theo thứ tự ưu tiên cao nhất
+                for (int i = 0; i < roles.size() - 1; i++) {
+                    for (int j = i + 1; j < roles.size(); j++) {
+                        if (getPriority(roles.get(j).getRoleName()) < getPriority(roles.get(i).getRoleName())) {
+                            Role temp = roles.get(i);
+                            roles.set(i, roles.get(j));
+                            roles.set(j, temp);
+                        }
+                    }
+                }
+
+                // Gán danh sách vai trò đã sắp xếp vào user
                 user.setRoles(roles);
-                
-                // Bước 3: Lấy danh sách tính năng từ các vai trò
+
+                // Bước 3: Lấy danh sách tính năng từ tất cả vai trò
                 List<Feature> features = featureDAO.getFeaturesByUserId(user.getUserId());
 
                 // Bước 4: Lưu thông tin vào session
                 HttpSession session = request.getSession();
-                session.setAttribute("user", user);
-                session.setAttribute("roles", roles);
-                session.setAttribute("features", features);
+                session.setAttribute("user", user);       // Đối tượng User
+                session.setAttribute("roles", roles);     // Danh sách vai trò
+                session.setAttribute("features", features); // Danh sách tính năng
 
-                // Bước 5: Chuyển hướng sang trang chính
+                // Bước 5: Chuyển hướng đến trang menu chung
                 response.sendRedirect("common/menu.jsp");
             } else {
                 // Sai tài khoản hoặc mật khẩu
@@ -58,4 +71,18 @@ public class LoginServlet extends HttpServlet {
             throw new ServletException("Lỗi kết nối CSDL", e);
         }
     }
+
+    private int getPriority(String roleName) {
+        if (roleName.equals("General Manager")) {
+            return 1;
+        }
+        if (roleName.equals("Department Head")) {
+            return 2;
+        }
+        if (roleName.equals("Direct Manager")) {
+            return 3;
+        }
+        return 4; // Employee hoặc vai trò thấp nhất
+    }
+
 }
