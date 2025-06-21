@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Leave Request System</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .container {
+                background-color: white;
+                padding: 50px 70px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                animation: fadeIn 1s ease-in-out;
+            }
+
+            h1 {
+                font-size: 40px;
+                margin-bottom: 30px;
+                color: #2c3e50;
+            }
+
+            .login-btn {
+                background: linear-gradient(to right, #36d1dc, #5b86e5);
+                border: none;
+                padding: 15px 40px;
+                font-size: 18px;
+                color: white;
+                border-radius: 50px;
+                cursor: pointer;
+                transition: 0.3s ease;
+            }
+
+            .login-btn:hover {
+                transform: scale(1.05);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .login-btn {
+                display: inline-block;
+                background: linear-gradient(to right, #36d1dc, #5b86e5);
+                text-decoration: none;
+                padding: 15px 40px;
+                font-size: 18px;
+                color: white;
+                border-radius: 50px;
+                transition: 0.3s ease;
+            }
+
+            .login-btn:hover {
+                transform: scale(1.05);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Leave Request System</h1>
+            <a id="loginLink" class="login-btn">Login</a>
+
+            <script>
+                // Tự động gán context path và route
+                const contextPath = window.location.pathname.split('/')[1];
+                document.getElementById('loginLink').href = `/${contextPath}/login`;
+            </script>
+
+        </div>
+    </body>
+</html>
