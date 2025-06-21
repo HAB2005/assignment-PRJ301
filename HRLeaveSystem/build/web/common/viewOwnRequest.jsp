@@ -1,48 +1,69 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <html>
     <head>
-        <title>Xem Đơn Xin Nghỉ Phép</title>
+        <title>Danh Sách Đơn Nghỉ Phép</title>
+        <style>
+            .back-link {
+                margin-top: 20px;
+                display: inline-block;
+            }
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 8px;
+            }
+        </style>
     </head>
     <body>
-        <h2>Thông Tin Đơn Xin Nghỉ Phép</h2>
+        <h2>Danh Sách Đơn Nghỉ Phép</h2>
 
-        <p><strong>Họ tên:</strong> ${user.fullName}</p>
-
-        <p><strong>Vai trò:</strong>
-            <c:forEach var="role" items="${roles}" varStatus="loop">
-                ${role.roleName}<c:if test="${!loop.last}">, </c:if>
-            </c:forEach>
-        </p>
-
-        <p><strong>Tên phòng ban:</strong> ${departmentName}</p>
+        <!-- Thông tin người dùng -->
+        <p><strong>Họ tên:</strong> <c:out value="${sessionScope.user.fullName}" /></p>
+        <p><strong>Phòng ban:</strong> <c:out value="${sessionScope.department.departmentName}" /></p>
+        <p><strong>Vai trò:</strong> ${roles[0].roleName}</p>
 
         <hr>
 
-        <p><strong>Từ ngày:</strong> ${request.fromDate}</p>
-        <p><strong>Đến ngày:</strong> ${request.toDate}</p>
-        <p><strong>Loại nghỉ phép:</strong> ${leaveTypeName}</p>
-        <p><strong>Lý do:</strong> ${request.reason}</p>
+        <!-- Bảng đơn nghỉ phép -->
+        <c:if test="${not empty leaveRequests}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Từ ngày</th>
+                        <th>Đến ngày</th>
+                        <th>Loại nghỉ phép</th>
+                        <th>Lý do</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="req" items="${leaveRequests}" varStatus="loop">
+                        <tr>
+                            <td>${loop.index + 1}</td>
+                            <td>${req.fromDate}</td>
+                            <td>${req.toDate}</td>
+                            <td>${req.leaveTypeName}</td>
+                            <td>${req.reason}</td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:if>
+        <c:if test="${empty leaveRequests}">
+            <p>Không có đơn nghỉ phép nào.</p>
+        </c:if>
 
         <br>
 
-        <!-- Nút quay lại Menu dựa trên vai trò đầu tiên -->
+        <!-- Nút Back to Menu -->
         <c:if test="${not empty roles}">
-            <c:choose>
-                <c:when test="${roles[0].roleName eq 'General Manager'}">
-                    <a href="${pageContext.request.contextPath}/general_manager/menu">⬅ Quay lại Menu</a>
-                </c:when>
-                <c:when test="${roles[0].roleName eq 'Department Head'}">
-                    <a href="${pageContext.request.contextPath}/department_head/menu">⬅ Quay lại Menu</a>
-                </c:when>
-                <c:when test="${roles[0].roleName eq 'Direct Manager'}">
-                    <a href="${pageContext.request.contextPath}/direct_manager/menu">⬅ Quay lại Menu</a>
-                </c:when>
-                <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/employee/menu">⬅ Quay lại Menu</a>
-                </c:otherwise>
-            </c:choose>
+            <c:set var="role" value="${roles[0].roleName}" />
+            <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
+            <a class="back-link" href="${pageContext.request.contextPath}/${rolePath}/menu">⬅ Quay lại Menu</a>
         </c:if>
+
     </body>
 </html>

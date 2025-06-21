@@ -1,8 +1,10 @@
 package controller;
 
+import dao.DepartmentDAO;
 import dao.FeatureDAO;
 import dao.RoleDAO;
 import dao.UserDAO;
+import entity.Department;
 import entity.Feature;
 import entity.Role;
 import entity.User;
@@ -50,17 +52,23 @@ public class LoginServlet extends HttpServlet {
                 // Gán danh sách vai trò đã sắp xếp vào user
                 user.setRoles(roles);
 
+                // ✅ Bước 2.2: Lấy thông tin phòng ban của người dùng
+                DepartmentDAO departmentDAO = new DepartmentDAO();
+                Department department = departmentDAO.getDepartmentById(user.getDepartmentId());
+
                 // Bước 3: Lấy danh sách tính năng từ tất cả vai trò
                 List<Feature> features = featureDAO.getFeaturesByUserId(user.getUserId());
 
                 // Bước 4: Lưu thông tin vào session
                 HttpSession session = request.getSession();
-                session.setAttribute("user", user);       // Đối tượng User
+                session.setAttribute("user", user);       // Đối tượng User có phòng ban
                 session.setAttribute("roles", roles);     // Danh sách vai trò
                 session.setAttribute("features", features); // Danh sách tính năng
+                session.setAttribute("department", department);
 
                 // Bước 5: Chuyển hướng đến trang menu chung
                 response.sendRedirect("common/menu.jsp");
+
             } else {
                 // Sai tài khoản hoặc mật khẩu
                 request.setAttribute("error", "Tài khoản hoặc mật khẩu không đúng!");

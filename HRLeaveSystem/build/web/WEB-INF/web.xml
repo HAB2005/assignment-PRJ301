@@ -36,6 +36,14 @@
         <servlet-name>createRequestDepartmentHead</servlet-name>
         <servlet-class>controller.CreateRequestServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>createRequestGeneralManager</servlet-name>
+        <servlet-class>controller.CreateRequestServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>viewOwnRequestEmployee</servlet-name>
+        <servlet-class>controller.RequestServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
         <url-pattern>/login</url-pattern>
@@ -71,5 +79,13 @@
     <servlet-mapping>
         <servlet-name>createRequestDepartmentHead</servlet-name>
         <url-pattern>/department_head/create_leave_request</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>createRequestGeneralManager</servlet-name>
+        <url-pattern>/general_manager/create_leave_request</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>viewOwnRequestEmployee</servlet-name>
+        <url-pattern>/employee/view_own_leave_requests</url-pattern>
     </servlet-mapping>
 </web-app>

@@ -1,41 +1,15 @@
 package entity;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class Request {
     private int requestId;
     private int userId;
-    private String title;
-    private Date fromDate;
-    private Date toDate;
-    private double totalDays;
+    private java.sql.Date fromDate;
+    private java.sql.Date toDate;
     private int leaveTypeId;
     private String reason;
     private String status;
-
-    public int getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(int requestId) {
-        this.requestId = requestId;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
 
     public Date getFromDate() {
         return fromDate;
@@ -53,12 +27,20 @@ public class Request {
         this.toDate = toDate;
     }
 
-    public double getTotalDays() {
-        return totalDays;
+    public int getRequestId() {
+        return requestId;
     }
 
-    public void setTotalDays(double totalDays) {
-        this.totalDays = totalDays;
+    public void setRequestId(int requestId) {
+        this.requestId = requestId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public int getLeaveTypeId() {

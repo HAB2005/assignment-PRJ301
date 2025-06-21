@@ -14,18 +14,50 @@ import util.DBConnection;
 public class RequestDAO {
 
     public void createRequest(Request request) throws SQLException {
-        String sql = "INSERT INTO requests (user_id, title, from_date, to_date, leave_type_id, reason, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO requests (user_id, from_date, to_date, leave_type_id, reason) "
+                + "VALUES (?, ?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, request.getUserId());
-            stmt.setString(2, request.getTitle());
-            stmt.setDate(3, new java.sql.Date(request.getFromDate().getTime()));
-            stmt.setDate(4, new java.sql.Date(request.getToDate().getTime()));
-            stmt.setDouble(5, request.getTotalDays());
-            stmt.setInt(6, request.getLeaveTypeId());
-            stmt.setString(7, request.getReason());
-            stmt.setString(8, request.getStatus());
+
+            // Chuyển java.util.Date → java.sql.Date
+            stmt.setDate(2, new java.sql.Date(request.getFromDate().getTime()));
+            stmt.setDate(3, new java.sql.Date(request.getToDate().getTime()));
+
+            stmt.setInt(4, request.getLeaveTypeId());
+            stmt.setString(5, request.getReason());
+
             stmt.executeUpdate();
         }
+    }
+
+    public List<Request> getRequestsByUserId(int userId) throws SQLException {
+        List<Request> list = new ArrayList<>();
+        String sql = "SELECT r.*, lt.type_name FROM requests r "
+                + "JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id "
+                + "WHERE r.user_id = ?";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Request r = new Request();
+                r.setRequestId(rs.getInt("request_id"));
+                r.setUserId(rs.getInt("user_id"));
+                r.setFromDate(rs.getDate("from_date"));
+                r.setToDate(rs.getDate("to_date"));
+                r.setLeaveTypeId(rs.getInt("leave_type_id"));
+                r.setReason(rs.getString("reason"));
+
+                // Gán thêm tên loại nghỉ phép
+                r.setLeaveTypeName(rs.getString("type_name"));
+
+                list.add(r);
+            }
+        }
+        return list;
     }
 
     public List<Role> getRolesByUserId(int userId) throws SQLException {
@@ -85,34 +117,6 @@ public class RequestDAO {
         return requests;
     }
 
-    public List<Request> getSubordinateRequests(int userId, List<Role> roles) throws SQLException {
-        String sql;
-        if (roles.stream().anyMatch(role -> role.getRoleName().equals("CEO"))) {
-            sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id WHERE r.status = 'Inprogress'";
-        } else if (roles.stream().anyMatch(role -> role.getRoleName().equals("Head of Department"))) {
-            sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id JOIN users u ON r.user_id = u.user_id WHERE u.department_id = (SELECT department_id FROM users WHERE user_id = ?) AND r.status = 'Inprogress'";
-        } else {
-            sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id JOIN users u ON r.user_id = u.user_id WHERE u.manager_id = ? AND r.status = 'Inprogress'";
-        }
-        List<Request> requests = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Request req = new Request();
-                req.setId(rs.getInt("request_id"));
-                req.setUserId(rs.getInt("user_id"));
-                req.setLeaveTypeName(rs.getString("leave_type_name"));
-                req.setFromDate(rs.getDate("from_date"));
-                req.setToDate(rs.getDate("to_date"));
-                req.setStatus(rs.getString("status"));
-                req.setReason(rs.getString("reason"));
-                requests.add(req);
-            }
-        }
-        return requests;
-    }
-
     public Request getRequestById(int requestId) throws SQLException {
         String sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id WHERE r.request_id = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -133,37 +137,4 @@ public class RequestDAO {
         return null;
     }
 
-    public void updateRequestStatus(int requestId, String status) throws SQLException {
-        String sql = "UPDATE requests SET status = ? WHERE request_id = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            stmt.setInt(2, requestId);
-            stmt.executeUpdate();
-        }
-    }
-
-    public Map<User, List<Request>> getAgendaData(int departmentId, String startDate, String endDate) throws SQLException {
-        // Truy vấn phức tạp để lấy dữ liệu cho Agenda
-        // Ví dụ: Lấy tất cả đơn đã duyệt trong khoảng thời gian
-        String sql = "SELECT r.*, u.full_name FROM requests r JOIN users u ON r.user_id = u.user_id "
-                + "WHERE u.department_id = ? AND r.status = 'Approved' AND r.from_date >= ? AND r.to_date <= ?";
-        Map<User, List<Request>> agendaData = new HashMap<>();
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, departmentId);
-            stmt.setDate(2, java.sql.Date.valueOf(startDate));
-            stmt.setDate(3, java.sql.Date.valueOf(endDate));
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setFullName(rs.getString("full_name"));
-                Request req = new Request();
-                req.setId(rs.getInt("request_id"));
-                req.setFromDate(rs.getDate("from_date"));
-                req.setToDate(rs.getDate("to_date"));
-                agendaData.computeIfAbsent(user, k -> new ArrayList<>()).add(req);
-            }
-        }
-        return agendaData;
-    }
 }

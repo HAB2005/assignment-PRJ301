@@ -8,17 +8,14 @@ import util.DBConnection;
 
 public class LeaveTypeDAO {
 
-    public List<LeaveType> getAllLeaveTypes() throws SQLException {
-        String sql = "SELECT * FROM leave_types";
-        List<LeaveType> leaveTypes = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+    public List<LeaveType> getAll() throws SQLException {
+        List<LeaveType> list = new ArrayList<>();
+        String sql = "SELECT leave_type_id, type_name FROM leave_types";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                LeaveType type = new LeaveType();
-                type.setLeaveTypeId(rs.getInt("leave_type_id"));
-                type.setTypeName(rs.getString("type_name"));
-                leaveTypes.add(type);
+                list.add(new LeaveType(rs.getInt("leave_type_id"), rs.getString("type_name")));
             }
         }
-        return leaveTypes;
+        return list;
     }
 }

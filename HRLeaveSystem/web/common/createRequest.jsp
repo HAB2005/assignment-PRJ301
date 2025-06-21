@@ -16,13 +16,10 @@
 
         <!-- Thông tin người dùng -->
         <p><strong>Tên:</strong> <c:out value="${sessionScope.user.fullName}" /></p>
-        <p><strong>Vai trò:</strong>
-            <c:forEach var="role" items="${roles}" varStatus="loop">
-                ${role.roleName}<c:if test="${!loop.last}">, </c:if>
-            </c:forEach>
-        </p>
+        <p><strong>Phòng ban:</strong> <c:out value="${sessionScope.department.departmentName}" /></p>
+        <p><strong>Vai trò:</strong> ${roles[0].roleName}</p>
 
-        <form action="createRequest" method="post">
+        <form action="create_leave_request" method="post">
             <label for="fromDate">Từ ngày:</label><br>
             <input type="date" id="fromDate" name="fromDate" required><br><br>
 
@@ -30,12 +27,21 @@
             <input type="date" id="toDate" name="toDate" required><br><br>
 
             <label for="leaveType">Loại nghỉ phép:</label><br>
-            <!-- <select name="leaveTypeId" id="leaveType" required>
-                TODO: Thêm options cho loại nghỉ phép từ bảng leave_types
-            </select><br><br> -->
+            <select name="leaveTypeId" id="leaveType" required>
+                <c:forEach var="type" items="${leaveTypes}">
+                    <option value="${type.leaveTypeId}">${type.typeName}</option>
+                </c:forEach>
+            </select><br><br>
+
 
             <label for="reason">Lý do:</label><br>
-            <textarea id="reason" name="reason" rows="4" cols="50" required></textarea><br><br>
+            <textarea id="reason" name="reason" rows="4" cols="50"></textarea><br><br>
+
+            <c:if test="${not empty sessionScope.successMessage}">
+                <p style="color: green;"><strong>${sessionScope.successMessage}</strong></p>
+                        <c:remove var="successMessage" scope="session"/>
+                    </c:if>
+
 
             <button type="submit">Gửi yêu cầu</button>
         </form>
