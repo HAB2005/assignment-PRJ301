@@ -1,62 +1,70 @@
 package dao;
 
 import entity.Feature;
+import entity.LeaveType;
 import entity.Request;
 import entity.Role;
-import entity.User;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import util.DBConnection;
 
 public class RequestDAO {
 
     public void createRequest(Request request) throws SQLException {
-        String sql = "INSERT INTO requests (user_id, from_date, to_date, leave_type_id, reason) "
-                + "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO requests (user_id, from_date, to_date, leave_type_id, reason) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, request.getUserId());
-
-            // Chuyển java.util.Date → java.sql.Date
             stmt.setDate(2, new java.sql.Date(request.getFromDate().getTime()));
             stmt.setDate(3, new java.sql.Date(request.getToDate().getTime()));
 
-            stmt.setInt(4, request.getLeaveTypeId());
+            // Lấy ID từ đối tượng LeaveType
+            stmt.setInt(4, request.getLeaveType().getLeaveTypeId());
+
             stmt.setString(5, request.getReason());
+            // Trạng thái: nếu không có, gán mặc định là "Chờ xử lý"
 
             stmt.executeUpdate();
         }
     }
 
-    public List<Request> getRequestsByUserId(int userId) throws SQLException {
+    public List<Request> getRequestsByUserId(int userId) {
         List<Request> list = new ArrayList<>();
-        String sql = "SELECT r.*, lt.type_name FROM requests r "
-                + "JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id "
-                + "WHERE r.user_id = ?";
+        String sql = """
+        SELECT r.request_id, r.user_id, r.from_date, r.to_date, r.leave_type_id, 
+               r.reason, lt.type_name
+        FROM requests r
+        JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id
+        WHERE r.user_id = ?
+        """;
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                Request r = new Request();
-                r.setRequestId(rs.getInt("request_id"));
-                r.setUserId(rs.getInt("user_id"));
-                r.setFromDate(rs.getDate("from_date"));
-                r.setToDate(rs.getDate("to_date"));
-                r.setLeaveTypeId(rs.getInt("leave_type_id"));
-                r.setReason(rs.getString("reason"));
+                Request req = new Request();
+                req.setRequestId(rs.getInt("request_id"));
+                req.setUserId(rs.getInt("user_id"));
+                req.setFromDate(rs.getDate("from_date"));
+                req.setToDate(rs.getDate("to_date"));
+                req.setReason(rs.getString("reason"));
 
-                // Gán thêm tên loại nghỉ phép
-                r.setLeaveTypeName(rs.getString("type_name"));
-
-                list.add(r);
+                // Tạo đối tượng LeaveType và set
+                LeaveType lt = new LeaveType();
+                lt.setLeaveTypeId(rs.getInt("leave_type_id"));
+                lt.setTypeName(rs.getString("type_name"));
+                req.setLeaveType(lt); // gắn đối tượng
+                req.setStatus("Chờ xử lý");
+                list.add(req);
             }
+
+        } catch (SQLException e) {
         }
+
         return list;
     }
 
@@ -95,46 +103,4 @@ public class RequestDAO {
         }
         return features;
     }
-
-    public List<Request> getRequestsByUser(int userId) throws SQLException {
-        List<Request> requests = new ArrayList<>();
-        String sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id WHERE r.user_id = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Request req = new Request();
-                req.setId(rs.getInt("request_id"));
-                req.setUserId(rs.getInt("user_id"));
-                req.setLeaveTypeName(rs.getString("leave_type_name"));
-                req.setFromDate(rs.getDate("from_date"));
-                req.setToDate(rs.getDate("to_date"));
-                req.setStatus(rs.getString("status"));
-                req.setReason(rs.getString("reason"));
-                requests.add(req);
-            }
-        }
-        return requests;
-    }
-
-    public Request getRequestById(int requestId) throws SQLException {
-        String sql = "SELECT r.*, lt.leave_type_name FROM requests r JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id WHERE r.request_id = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, requestId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Request req = new Request();
-                req.setId(rs.getInt("request_id"));
-                req.setUserId(rs.getInt("user_id"));
-                req.setLeaveTypeName(rs.getString("leave_type_name"));
-                req.setFromDate(rs.getDate("from_date"));
-                req.setToDate(rs.getDate("to_date"));
-                req.setStatus(rs.getString("status"));
-                req.setReason(rs.getString("reason"));
-                return req;
-            }
-        }
-        return null;
-    }
-
 }

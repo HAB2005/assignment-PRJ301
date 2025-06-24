@@ -4,6 +4,9 @@ public class LeaveType {
     private int leaveTypeId;
     private String typeName;
 
+    public LeaveType() {
+    }
+
     public LeaveType(int leaveTypeId, String typeName) {
         this.leaveTypeId = leaveTypeId;
         this.typeName = typeName;

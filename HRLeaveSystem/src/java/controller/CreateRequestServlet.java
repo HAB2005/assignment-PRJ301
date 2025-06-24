@@ -30,21 +30,28 @@ public class CreateRequestServlet extends HttpServlet {
             java.sql.Date fromDate = java.sql.Date.valueOf(fromDateStr);
             java.sql.Date toDate = java.sql.Date.valueOf(toDateStr);
 
+            // ✅ Tạo LeaveType và gán ID
+            LeaveType leaveType = new LeaveType();
+            leaveType.setLeaveTypeId(leaveTypeId);
+
+            // ✅ Tạo đối tượng Request
             Request leaveRequest = new Request();
             leaveRequest.setUserId(user.getUserId());
             leaveRequest.setFromDate(fromDate);
             leaveRequest.setToDate(toDate);
-            leaveRequest.setLeaveTypeId(leaveTypeId);
+            leaveRequest.setLeaveType(leaveType); // gán đối tượng LeaveType
             leaveRequest.setReason(reason);
 
+            // ✅ Gọi DAO
             RequestDAO dao = new RequestDAO();
             dao.createRequest(leaveRequest);
 
-            // Đặt thông báo vào session rồi redirect lại trang form
+            // ✅ Gửi thông báo thành công và forward lại trang tạo đơn
             session.setAttribute("successMessage", "Gửi yêu cầu nghỉ phép thành công!");
             req.getRequestDispatcher("/common/createRequest.jsp").forward(req, resp);
 
-        } catch (IOException | NumberFormatException | SQLException e) {
+        } catch (IOException | NumberFormatException | SQLException e) { // giúp debug
+            e.printStackTrace();
             req.setAttribute("error", "Có lỗi xảy ra khi gửi yêu cầu nghỉ phép.");
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }

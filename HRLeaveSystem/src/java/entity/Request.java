@@ -7,7 +7,7 @@ public class Request {
     private int userId;
     private java.sql.Date fromDate;
     private java.sql.Date toDate;
-    private int leaveTypeId;
+    private LeaveType leaveType;
     private String reason;
     private String status;
 
@@ -43,12 +43,12 @@ public class Request {
         this.userId = userId;
     }
 
-    public int getLeaveTypeId() {
-        return leaveTypeId;
+    public LeaveType getLeaveType() {
+        return leaveType;
     }
 
-    public void setLeaveTypeId(int leaveTypeId) {
-        this.leaveTypeId = leaveTypeId;
+    public void setLeaveType(LeaveType leaveType) {
+        this.leaveType = leaveType;
     }
 
     public String getReason() {
@@ -65,13 +65,5 @@ public class Request {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public void setId(int aInt) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    public void setLeaveTypeName(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
