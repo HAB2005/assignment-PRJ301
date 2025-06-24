@@ -41,20 +41,12 @@
         <servlet-class>controller.CreateRequestServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>viewOwnRequestEmployee</servlet-name>
-        <servlet-class>controller.ViewMyRequestController</servlet-class>
+        <servlet-name>viewOwnAgendaEmployee</servlet-name>
+        <servlet-class>controller.ViewMyAgendaController</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>viewOwnRequestDirectManager</servlet-name>
-        <servlet-class>controller.ViewMyRequestController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>viewOwnRequestDepartmentHead</servlet-name>
-        <servlet-class>controller.ViewMyRequestController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>viewOwnRequestGeneralManager</servlet-name>
-        <servlet-class>controller.ViewMyRequestController</servlet-class>
+        <servlet-name>viewOwnAgendaDepartmentHead</servlet-name>
+        <servlet-class>controller.ViewMyAgendaController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
@@ -97,19 +89,11 @@
         <url-pattern>/general_manager/create_leave_request</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>viewOwnRequestEmployee</servlet-name>
-        <url-pattern>/employee/view_own_leave_requests</url-pattern>
+        <servlet-name>viewOwnAgendaEmployee</servlet-name>
+        <url-pattern>/employee/view_own_agenda</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>viewOwnRequestDirectManager</servlet-name>
-        <url-pattern>/direct_manager/view_own_leave_requests</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>viewOwnRequestDepartmentHead</servlet-name>
-        <url-pattern>/department_head/view_own_leave_requests</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>viewOwnRequestGeneralManager</servlet-name>
-        <url-pattern>/general_manager/view_own_leave_requests</url-pattern>
+        <servlet-name>viewOwnAgendaDepartmentHead</servlet-name>
+        <url-pattern>/department_head/view_own_agenda</url-pattern>
     </servlet-mapping>
 </web-app>

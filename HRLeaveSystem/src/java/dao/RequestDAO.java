@@ -32,37 +32,48 @@ public class RequestDAO {
 
     public List<Request> getRequestsByUserId(int userId) {
         List<Request> list = new ArrayList<>();
+
         String sql = """
-        SELECT r.request_id, r.user_id, r.from_date, r.to_date, r.leave_type_id, 
-               r.reason, lt.type_name
+        SELECT r.request_id, r.user_id, r.from_date, r.to_date, r.reason,
+               lt.leave_type_id, lt.type_name,
+               ra.decision
         FROM requests r
         JOIN leave_types lt ON r.leave_type_id = lt.leave_type_id
+        LEFT JOIN (
+            SELECT request_id, MAX(decision) AS decision
+            FROM request_approvals
+            GROUP BY request_id
+        ) ra ON r.request_id = ra.request_id
         WHERE r.user_id = ?
-        """;
+        ORDER BY r.from_date DESC
+    """;
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); // gọi static
+                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Request req = new Request();
-                req.setRequestId(rs.getInt("request_id"));
-                req.setUserId(rs.getInt("user_id"));
-                req.setFromDate(rs.getDate("from_date"));
-                req.setToDate(rs.getDate("to_date"));
-                req.setReason(rs.getString("reason"));
+                Request r = new Request();
+                r.setRequestId(rs.getInt("request_id"));
+                r.setUserId(rs.getInt("user_id"));
+                r.setFromDate(rs.getDate("from_date"));  // java.sql.Date
+                r.setToDate(rs.getDate("to_date"));      // java.sql.Date
+                r.setReason(rs.getString("reason"));
 
-                // Tạo đối tượng LeaveType và set
                 LeaveType lt = new LeaveType();
                 lt.setLeaveTypeId(rs.getInt("leave_type_id"));
                 lt.setTypeName(rs.getString("type_name"));
-                req.setLeaveType(lt); // gắn đối tượng
-                req.setStatus("Chờ xử lý");
-                list.add(req);
+                r.setLeaveType(lt);
+
+                String decision = rs.getString("decision");
+                r.setStatus(decision == null ? "Pending" : decision);
+
+                list.add(r);
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
         }
 
         return list;
