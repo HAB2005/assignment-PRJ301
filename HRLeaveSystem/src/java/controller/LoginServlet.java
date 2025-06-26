@@ -1,10 +1,8 @@
 package controller;
 
-import dao.DepartmentDAO;
 import dao.FeatureDAO;
 import dao.RoleDAO;
 import dao.UserDAO;
-import entity.Department;
 import entity.Feature;
 import entity.Role;
 import entity.User;
@@ -15,7 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LoginServlet extends HttpServlet {
 
@@ -38,7 +38,7 @@ public class LoginServlet extends HttpServlet {
                 // Bước 2: Lấy danh sách vai trò của người dùng
                 List<Role> roles = roleDAO.getRolesByUser(user.getUserId());
 
-                // Bước 2.1: Sắp xếp danh sách vai trò theo thứ tự ưu tiên cao nhất
+                // Bước 2.1: Sắp xếp vai trò theo mức độ ưu tiên (nếu cần)
                 for (int i = 0; i < roles.size() - 1; i++) {
                     for (int j = i + 1; j < roles.size(); j++) {
                         if (getPriority(roles.get(j).getRoleName()) < getPriority(roles.get(i).getRoleName())) {
@@ -49,24 +49,35 @@ public class LoginServlet extends HttpServlet {
                     }
                 }
 
-                // Gán danh sách vai trò đã sắp xếp vào user
+                // Gán roles đã sắp xếp vào user
                 user.setRoles(roles);
 
-                // ✅ Bước 2.2: Lấy thông tin phòng ban của người dùng
-                DepartmentDAO departmentDAO = new DepartmentDAO();
-                Department department = departmentDAO.getDepartmentById(user.getDepartmentId());
-
-                // Bước 3: Lấy danh sách tính năng từ tất cả vai trò
+                // Bước 3: Lấy danh sách feature
                 List<Feature> features = featureDAO.getFeaturesByUserId(user.getUserId());
 
-                // Bước 4: Lưu thông tin vào session
-                HttpSession session = request.getSession();
-                session.setAttribute("user", user);       // Đối tượng User có phòng ban
-                session.setAttribute("roles", roles);     // Danh sách vai trò
-                session.setAttribute("features", features); // Danh sách tính năng
-                session.setAttribute("department", department);
+                // Bước 4: Tạo Map để ánh xạ feature name -> link path
+                Map<String, String> featureLinks = new HashMap<>();
 
-                // Bước 5: Chuyển hướng đến trang menu chung
+                if (!roles.isEmpty()) {
+                    // Dùng role đầu tiên (ưu tiên nhất)
+                    String rolePath = roles.get(0).getRoleName().toLowerCase().replace(" ", "_");
+
+                    for (Feature f : features) {
+                        String featurePath = f.getFeatureName().toLowerCase().replace(" ", "_");
+                        String fullPath = rolePath + "/" + featurePath;
+                        featureLinks.put(f.getFeatureName(), fullPath);
+                    }
+                }
+
+                // Bước 5: Lưu thông tin vào session
+                HttpSession session = request.getSession();
+                session.setAttribute("user", user);
+                session.setAttribute("roles", roles);
+                session.setAttribute("features", features);
+                session.setAttribute("featureLinks", featureLinks);
+                session.setAttribute("department", user.getDepartment());
+
+                // Bước 6: Chuyển hướng đến trang menu chung
                 response.sendRedirect("common/menu.jsp");
 
             } else {

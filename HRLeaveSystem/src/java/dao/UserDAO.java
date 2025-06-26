@@ -1,11 +1,12 @@
 package dao;
 
+import entity.Department;
 import entity.User;
 import java.sql.*;
 import util.DBConnection;
 
 public class UserDAO {
-    
+
     private final RoleDAO roleDAO = new RoleDAO();
 
     public User login(String username, String password) throws SQLException {
@@ -24,11 +25,17 @@ public class UserDAO {
                 user.setPassword(rs.getString("password"));
                 user.setFullName(rs.getString("full_name"));
                 user.setEmail(rs.getString("email"));
-                user.setDepartmentId(rs.getInt("department_id"));
+
+                // Gán Department ID thông qua DAO
+                int departmentId = rs.getInt("department_id");
+                DepartmentDAO departmentDAO = new DepartmentDAO();
+                Department department = departmentDAO.getDepartmentById(departmentId);
+                user.setDepartment(department);
+
                 int managerId = rs.getInt("manager_id");
                 user.setManagerId(rs.wasNull() ? null : managerId);
 
-                // Gán vai trò cho user
+                // Gán vai trò
                 user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
 
                 return user;

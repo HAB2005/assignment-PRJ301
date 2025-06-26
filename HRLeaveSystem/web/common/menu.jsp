@@ -17,15 +17,18 @@
     <body>
         <h2>Welcome, <c:out value="${sessionScope.user.fullName}" /></h2>
         <ul>
-            <c:if test="${not empty roles}">
-                <c:set var="role" value="${roles[0].roleName}" />
-                <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
+            <c:if test="${not empty features && not empty featureLinks}">
                 <c:forEach var="feature" items="${features}">
-                    <c:set var="featurePath" value="${fn:toLowerCase(fn:replace(feature.featureName, ' ', '_'))}" />
-                    <li><a href="${pageContext.request.contextPath}/${rolePath}/${featurePath}">${feature.featureName}</a></li>
-                    </c:forEach>
-                </c:if>
+                    <c:set var="link" value="${featureLinks[feature.featureName]}" />
+                    <li>
+                        <a href="${pageContext.request.contextPath}/${link}">
+                            <c:out value="${feature.featureName}" />
+                        </a>
+                    </li>
+                </c:forEach>
+            </c:if>
         </ul>
         <a href="${pageContext.request.contextPath}/login">Log out</a>
     </body>
+
 </html>

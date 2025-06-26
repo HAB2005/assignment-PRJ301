@@ -8,7 +8,7 @@ public class User {
     private String password;
     private String fullName;
     private String email;
-    private int departmentId;
+    private Department department;
     private Integer managerId; //Có thể null
     private List<Role> roles;
 
@@ -52,12 +52,12 @@ public class User {
         this.email = email;
     }
 
-    public int getDepartmentId() {
-        return departmentId;
+    public Department getDepartment() {
+        return department;
     }
 
-    public void setDepartmentId(int departmentId) {
-        this.departmentId = departmentId;
+    public void setDepartment(Department department) {
+        this.department = department;
     }
 
     public Integer getManagerId() {

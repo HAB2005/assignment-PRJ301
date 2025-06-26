@@ -207,7 +207,6 @@
                             }
         </script>
 
-
         <!-- DANH SÁCH ĐƠN -->
         <h3>Danh sách đơn xin nghỉ phép</h3>
         <c:if test="${not empty roles}">
