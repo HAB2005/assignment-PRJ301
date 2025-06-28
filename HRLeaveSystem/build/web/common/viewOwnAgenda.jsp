@@ -20,13 +20,6 @@
                 color: #333;
             }
 
-            .notification {
-                background: #fff3cd;
-                padding: 10px;
-                border-left: 4px solid #ffc107;
-                margin-bottom: 10px;
-            }
-
             #calendar {
                 background: white;
                 padding: 20px;
@@ -87,21 +80,21 @@
 
             /* FullCalendar custom event styles */
             .fc-event-approved {
-                background-color: #d4edda;
-                border-color: #155724;
-                color: #155724 !important;
+                background-color: #28a745 !important; /* xanh lá */
+                border-color: #28a745 !important;
+                color: black !important;
             }
 
             .fc-event-pending {
                 background-color: #fff3cd;
                 border-color: #856404;
-                color: #333 !important; /* Dễ đọc hơn */
+                color: black !important;
             }
 
             .fc-event-denied {
-                background-color: #f8d7da;
-                border-color: #721c24;
-                color: #721c24 !important;
+                background-color: #dc3545 !important; /* đỏ */
+                border-color: #dc3545 !important;
+                color: black !important;
             }
 
             .fc-event .fc-event-title {
@@ -109,14 +102,13 @@
                 font-size: 0.85rem;
             }
 
-            /* Ngăn không cho tô màu cả ô ngày */
             .fc-daygrid-day {
                 background-color: inherit !important;
             }
 
             .fc .fc-event-title,
             .fc .fc-event-main {
-                color: #333 !important; /* chữ đen dễ đọc */
+                color: black !important;
                 white-space: normal !important;
                 font-size: 0.9rem;
             }
@@ -127,15 +119,10 @@
         <h2>Agenda của tôi</h2>
         <p>Xem lịch nghỉ và trạng thái đơn xin nghỉ phép của bạn.</p>
 
-        <!-- THÔNG BÁO -->
-        <c:forEach var="n" items="${notifications}">
-            <div class="notification">${n}</div>
-        </c:forEach>
-
-        <!-- BẢNG LỊCH -->
+        <!-- LỊCH -->
         <div id="calendar"></div>
 
-        <!-- DỮ LIỆU ĐƠN -->
+        <!-- DỮ LIỆU ẨN -->
         <div id="requestData" style="display:none;">
             <c:forEach var="r" items="${myRequests}">
                 <div 
@@ -149,62 +136,48 @@
         </div>
 
         <script>
-            // Hàm cộng thêm 1 ngày cho ngày kết thúc
             function getNextDate(dateStr) {
-                const date = new Date(dateStr);
-                date.setDate(date.getDate() + 1);
-                return date.toISOString().split('T')[0];
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().split('T')[0];
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                const calendarEl = document.getElementById('calendar');
-
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                        locale: 'vi',
-                        firstDay: 1,
-                        headerToolbar: {
-                        left: 'prev',
-                                center: 'title',
-                                right: 'next'
-                        },
-                        events: [
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+                    locale: 'vi',
+                    firstDay: 1,
+                    headerToolbar: {
+                    left: 'prev',
+                            center: 'title',
+                            right: 'next'
+                    },
+                    events: [
             <c:forEach var="r" items="${myRequests}" varStatus="loop">
-                        {
-                        title: '${r.leaveType.typeName}: ${fn:escapeXml(r.reason)}',
-                                                start: '${r.fromDate}',
-                                                end: getNextDate('${r.toDate}'),
-                                                className: 'fc-event-${fn:toLowerCase(r.status)}',
-                                                extendedProps: {
-                                                status: '${r.status}',
-                                                        reason: '${fn:escapeXml(r.reason)}'
-                                                }
-                                        }<c:if test="${!loop.last}">,</c:if>
+                    {
+                    title: '${r.leaveType.typeName}: ${fn:escapeXml(r.reason)}',
+                                        start: '${r.fromDate}',
+                                        end: getNextDate('${r.toDate}'),
+                                        className: 'fc-event-${fn:toLowerCase(r.status)}',
+                                        extendedProps: {
+                                        status: '${r.status}',
+                                                reason: '${fn:escapeXml(r.reason)}'
+                                        }
+                                }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
-                                        ],
-                                eventClick: function (info) {
-                                    alert(
-                                            'Loại nghỉ: ' + info.event.title + '\n' +
-                                            'Trạng thái: ' + info.event.extendedProps.status + '\n' +
-                                            'Từ: ' + info.event.start.toLocaleDateString('vi-VN') + '\n' +
-                                            'Đến: ' + (info.event.end ? info.event.end.toLocaleDateString('vi-VN') : info.event.start.toLocaleDateString('vi-VN')) + '\n' +
-                                            'Lý do: ' + info.event.extendedProps.reason
-                                            );
-                                    }
-                                }
-                                );
-
-                                calendar.render();
-                            });
-
-                            function filterTable(keyword) {
-                                const input = keyword.toLowerCase();
-                                const rows = document.querySelectorAll("#requestTable tbody tr");
-                                rows.forEach(row => {
-                                    const text = row.innerText.toLowerCase();
-                                    row.style.display = text.includes(input) ? "" : "none";
-                                });
-                            }
+                                ]
+                        });
+                        calendar.render();
+                        });
+                        function filterTable(keyword) {
+                        const input = keyword.toLowerCase();
+                        const rows = document.querySelectorAll("#requestTable tbody tr");
+                        rows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(input) ? "" : "none";
+                        });
+                        }
         </script>
 
         <!-- DANH SÁCH ĐƠN -->

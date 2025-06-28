@@ -68,6 +68,10 @@
         <servlet-name>viewSubAgendaDepartmentHead</servlet-name>
         <servlet-class>controller.AgendaServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ApprovalDepartmentHead</servlet-name>
+        <servlet-class>controller.ApprovalServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
         <url-pattern>/login</url-pattern>
@@ -135,5 +139,9 @@
     <servlet-mapping>
         <servlet-name>viewSubAgendaDepartmentHead</servlet-name>
         <url-pattern>/department_head/view_and_approve_subordinates'_agenda</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApprovalDepartmentHead</servlet-name>
+        <url-pattern>/department_head/approve_agenda</url-pattern>
     </servlet-mapping>
 </web-app>

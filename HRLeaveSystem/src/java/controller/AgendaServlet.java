@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -42,27 +41,50 @@ public class AgendaServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        req.setCharacterEncoding("UTF-8");
+
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             resp.sendRedirect(req.getContextPath() + "/common/login.jsp");
             return;
         }
 
-        // Lấy thông tin người gửi form và người đang được xem
+        // Lấy người dùng hiện tại
         User currentUser = (User) session.getAttribute("user");
+
+        // Bắt buộc phải có userId (người đang được xem)
         int targetUserId = Integer.parseInt(req.getParameter("userId"));
 
-        // Lấy user được chọn và request của họ
+        // 🔹 Nếu có thông tin duyệt đơn được gửi lên thì xử lý
+        String requestIdParam = req.getParameter("requestId");
+        String action = req.getParameter("action"); // Approved hoặc Rejected
+
+        if (requestIdParam != null && action != null) {
+            try {
+                int requestId = Integer.parseInt(requestIdParam);
+
+                // Gọi DAO để cập nhật trạng thái duyệt đơn
+                dao.updateRequestStatus(requestId, action, currentUser.getUserId());
+            } catch (NumberFormatException e) {
+                e.printStackTrace(); // Log lỗi nếu requestId sai định dạng
+            }
+        }
+
+        // 🔸 Dù có duyệt hay không, luôn thực hiện các bước dưới đây (giữ nguyên logic cũ)
         User selectedUser = dao.getUserById(targetUserId);
         List<Request> requests = dao.getRequestsByUser(targetUserId);
-        System.out.println(requests);
 
-        // Kiểm tra xem currentUser có quyền duyệt không
         boolean canApprove = dao.hasApprovalPermission(currentUser.getUserId());
 
         req.setAttribute("selectedUser", selectedUser);
         req.setAttribute("selectedUserRequests", requests);
         req.setAttribute("canApprove", canApprove);
+
+        // Lưu lại link để giữ tính năng "quay lại menu"
+        String fullURI = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String featureLink = fullURI.substring(contextPath.length() + 1);
+        req.setAttribute("currentFeatureLink", featureLink);
 
         // Chuyển đến trang hiển thị agenda của cấp dưới
         req.getRequestDispatcher("/common/viewSubordinateAgenda.jsp").forward(req, resp);

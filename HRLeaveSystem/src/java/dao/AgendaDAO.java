@@ -61,7 +61,6 @@ public class AgendaDAO {
                 return u;
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -95,21 +94,8 @@ public class AgendaDAO {
                 list.add(r);
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Thêm log cho dễ debug
         }
         return list;
-    }
-
-    public void updateRequestStatus(int requestId, String status, int approverId) {
-        String insertApproval = "INSERT INTO request_approvals (request_id, approver_id, decision) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(insertApproval)) {
-            ps.setInt(1, requestId);
-            ps.setInt(2, approverId);
-            ps.setString(3, status);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public boolean hasApprovalPermission(int userId) {
@@ -120,8 +106,30 @@ public class AgendaDAO {
             ResultSet rs = ps.executeQuery();
             return rs.next();
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }
+
+    public void updateRequestStatus(int requestId, String newStatus, int approverId) {
+        String checkApproval = "SELECT COUNT(*) FROM request_approvals WHERE request_id = ?";
+        String insertApproval = "INSERT INTO request_approvals(request_id, approver_id, decision) VALUES (?, ?, ?)";
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement checkStmt = con.prepareStatement(checkApproval); PreparedStatement insertStmt = con.prepareStatement(insertApproval)) {
+
+            checkStmt.setInt(1, requestId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Chỉ insert nếu đơn chưa được duyệt trước đó
+                insertStmt.setInt(1, requestId);
+                insertStmt.setInt(2, approverId);
+                insertStmt.setString(3, newStatus);
+                insertStmt.executeUpdate();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

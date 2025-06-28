@@ -50,35 +50,32 @@
                 padding: 4px 8px;
             }
 
-            /* Ngăn không cho tô màu cả ô ngày */
             .fc-daygrid-day {
                 background-color: inherit !important;
             }
 
-            /* Màu cho sự kiện */
             .fc-event-approved {
-                background-color: #d4edda;
-                border-color: #155724;
-                color: #155724 !important;
+                background-color: #28a745 !important; /* xanh lá */
+                border-color: #28a745 !important;
+                color: black !important;
             }
 
             .fc-event-pending {
                 background-color: #fff3cd;
                 border-color: #856404;
-                color: #333 !important;
+                color: black !important;
             }
 
             .fc-event-denied {
-                background-color: #f8d7da;
-                border-color: #721c24;
-                color: #721c24 !important;
+                background-color: #dc3545 !important; /* đỏ */
+                border-color: #dc3545 !important;
+                color: black !important;
             }
 
             .fc-event .fc-event-title {
                 white-space: normal !important;
                 font-size: 0.85rem;
             }
-
         </style>
     </head>
     <body>
@@ -90,91 +87,98 @@
 
         <script>
             function getNextDate(dateStr) {
-                if (!dateStr)
+            if (!dateStr)
                     return null;
-                const date = new Date(dateStr);
-                if (isNaN(date))
+            const date = new Date(dateStr);
+            if (isNaN(date))
                     return null;
-                date.setDate(date.getDate() + 1);
-                return date.toISOString().split('T')[0];
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().split('T')[0];
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth',
-                        locale: 'vi',
-                        firstDay: 1,
-                        headerToolbar: {
-                        left: 'prev',
-                                center: 'title',
-                                right: 'next'
-                        },
-                        events: [
+            const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+            initialView: 'dayGridMonth',
+                    locale: 'vi',
+                    firstDay: 1,
+                    headerToolbar: {
+                    left: 'prev',
+                            center: 'title',
+                            right: 'next'
+                    },
+                    events: [
             <c:forEach var="r" items="${selectedUserRequests}" varStatus="loop">
                 <c:set var="safeEnd" value="${empty r.toDate ? '' : r.toDate}" />
-                        {
-                        title: '${r.leaveType.typeName}: ${fn:escapeXml(r.reason)}',
-                                                start: '${r.fromDate}',
-                                                end: '${safeEnd}' !== '' ? getNextDate('${safeEnd}') : null,
-                                                className: 'fc-event-${fn:toLowerCase(r.status)}',
+                    {
+                    title: '${r.leaveType.typeName}: ${fn:escapeXml(r.reason)}',
+                                        start: '${r.fromDate}',
+                                        end: '${safeEnd}' !== '' ? getNextDate('${safeEnd}') : null,
+                                        className: 'fc-event-${fn:toLowerCase(r.status)}',
                                         extendedProps: {
-                                            status: '${r.status}',
-                                                    reason: '${fn:escapeXml(r.reason)}'
-                                            }
-                                        }<c:if test="${!loop.last}">,</c:if>
+                                        status: '${r.status}',
+                                                reason: '${fn:escapeXml(r.reason)}'
+                                        }
+                                }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
-                                        ],
-                                eventClick: function (info) {
-                                    alert(
-                                            'Loại nghỉ: ' + info.event.title + '\n' +
-                                            'Trạng thái: ' + info.event.extendedProps.status + '\n' +
-                                            'Từ: ' + info.event.start.toLocaleDateString('vi-VN') + '\n' +
-                                            'Đến: ' + (info.event.end ? info.event.end.toLocaleDateString('vi-VN') : '') + '\n' +
-                                            'Lý do: ' + info.event.extendedProps.reason
-                                            );
-                                    }
-                                }
-                                );
-                                calendar.render();
-                            });
+                                ]
+                        });
+                        calendar.render();
+                        });
         </script>
 
         <h3>Danh sách đơn xin nghỉ phép</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Từ ngày</th>
-                    <th>Đến ngày</th>
-                    <th>Loại nghỉ</th>
-                    <th>Lý do</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="r" items="${selectedUserRequests}" varStatus="loop">
-                    <tr>
-                        <td>${loop.index + 1}</td>
-                        <td><fmt:formatDate value="${r.fromDate}" pattern="dd/MM/yyyy"/></td>
-                        <td><fmt:formatDate value="${r.toDate}" pattern="dd/MM/yyyy"/></td>
-                        <td>${r.leaveType.typeName}</td>
-                        <td>${r.reason}</td>
-                        <td class="status-${fn:toLowerCase(r.status)}">
-                            ${r.status}
-                            <c:if test="${canApprove && r.status == 'Pending'}">
-                                <form method="post" action="${pageContext.request.contextPath}/agenda/approve" style="display:inline;">
-                                    <input type="hidden" name="requestId" value="${r.requestId}" />
-                                    <input type="hidden" name="userId" value="${selectedUser.userId}" />
-                                    <button type="submit" name="action" value="Approved">✔ Duyệt</button>
-                                    <button type="submit" name="action" value="Rejected">✖ Từ chối</button>
-                                </form>
-                            </c:if>
-                        </td>
-                    </tr>
-                </c:forEach>
-            </tbody>
-        </table>
+        <c:set var="role" value="${roles[0].roleName}" />
+        <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
+        <c:if test="${not empty selectedUserRequests}">
+            <c:if test="${empty rolePath && not empty roles}">
+                <c:set var="role" value="${roles[0].roleName}" />
+                <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
+            </c:if>
 
-        <a href="${pageContext.request.contextPath}/subordinates">⬅ Quay lại danh sách cấp dưới</a>
+            <table>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Từ ngày</th>
+                        <th>Đến ngày</th>
+                        <th>Loại nghỉ</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="r" items="${selectedUserRequests}" varStatus="loop">
+                        <tr>
+                            <td>${loop.index + 1}</td>
+                            <td><fmt:formatDate value="${r.fromDate}" pattern="dd/MM/yyyy"/></td>
+                            <td><fmt:formatDate value="${r.toDate}" pattern="dd/MM/yyyy"/></td>
+                            <td>${r.leaveType.typeName}</td>
+                            <td>${r.reason}</td>
+                            <td class="status-${fn:toLowerCase(r.status)}">
+                                <c:choose>
+                                    <c:when test="${canApprove && r.status == 'Pending'}">
+                                        <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}" style="display:inline;">
+                                            <input type="hidden" name="requestId" value="${r.requestId}" />
+                                            <input type="hidden" name="userId" value="${selectedUser.userId}" />
+                                            <button type="submit" name="action" value="Approved">✔ Duyệt</button>
+                                            <button type="submit" name="action" value="Rejected">✖ Từ chối</button>
+                                        </form>
+                                    </c:when>
+                                    <c:otherwise>
+                                        ${r.status}
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:if>
+
+        <c:if test="${empty selectedUserRequests}">
+            <p>Người này chưa có đơn xin nghỉ nào.</p>
+        </c:if>
+
+        <a href="${pageContext.request.contextPath}/${currentFeatureLink}">⬅ Quay lại danh sách cấp dưới</a>
     </body>
 </html>
