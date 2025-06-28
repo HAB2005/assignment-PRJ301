@@ -48,6 +48,11 @@ public class CreateRequestServlet extends HttpServlet {
 
             // ✅ Gửi thông báo thành công và forward lại trang tạo đơn
             session.setAttribute("successMessage", "Gửi yêu cầu nghỉ phép thành công!");
+
+            LeaveTypeDAO leaveTypeDAO = new LeaveTypeDAO();
+            List<LeaveType> leaveTypes = leaveTypeDAO.getAll();
+            req.setAttribute("leaveTypes", leaveTypes);
+
             req.getRequestDispatcher("/common/createRequest.jsp").forward(req, resp);
 
         } catch (IOException | NumberFormatException | SQLException e) { // giúp debug

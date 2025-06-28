@@ -21,10 +21,12 @@
 
         <form action="create_leave_request" method="post">
             <label for="fromDate">Từ ngày:</label><br>
-            <input type="date" id="fromDate" name="fromDate" required><br><br>
+            <input type="date" id="fromDate" name="fromDate" required><br>
+            <small id="fromDateError" style="color:red;"></small><br><br>
 
             <label for="toDate">Đến ngày:</label><br>
-            <input type="date" id="toDate" name="toDate" required><br><br>
+            <input type="date" id="toDate" name="toDate" required><br>
+            <small id="toDateError" style="color:red;"></small><br><br>
 
             <label for="leaveType">Loại nghỉ phép:</label><br>
             <select name="leaveTypeId" id="leaveType" required>
@@ -54,6 +56,43 @@
             <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
             <a class="back-link" href="${pageContext.request.contextPath}/${rolePath}/menu">⬅ Quay lại Menu</a>
         </c:if>
+
+        <script>
+            const fromInput = document.getElementById("fromDate");
+            const toInput = document.getElementById("toDate");
+            const fromError = document.getElementById("fromDateError");
+            const toError = document.getElementById("toDateError");
+
+            function validateFromDate() {
+                fromError.textContent = "";
+                const fromDate = new Date(fromInput.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (fromInput.value && fromDate < today) {
+                    fromError.textContent = "❌ Ngày bắt đầu phải từ hôm nay trở đi.";
+                    fromInput.value = ""; // Xoá lựa chọn sai
+                }
+
+                // Gọi lại validateToDate vì toDate có thể phụ thuộc vào fromDate
+                validateToDate();
+            }
+
+            function validateToDate() {
+                toError.textContent = "";
+                const fromDate = new Date(fromInput.value);
+                const toDate = new Date(toInput.value);
+
+                if (fromInput.value && toInput.value && toDate < fromDate) {
+                    toError.textContent = "❌ Ngày kết thúc không được trước ngày bắt đầu.";
+                    toInput.value = ""; // Xoá lựa chọn sai
+                }
+            }
+
+            fromInput.addEventListener("change", validateFromDate);
+            toInput.addEventListener("change", validateToDate);
+        </script>
+
 
     </body>
 </html>

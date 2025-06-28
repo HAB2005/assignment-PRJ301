@@ -187,7 +187,7 @@
             <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
             <div class="top-bar">
                 <input type="text" placeholder="Tìm theo loại nghỉ hoặc ngày..." onkeyup="filterTable(this.value)">
-                <a href="${pageContext.request.contextPath}/${rolePath}/create_leave_request">+ Nộp đơn mới</a>
+                <a href="${pageContext.request.contextPath}/${rolePath}/create_leave_request">+ Tạo đơn mới</a>
             </div>
         </c:if>
 

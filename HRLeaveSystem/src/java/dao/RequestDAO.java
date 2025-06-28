@@ -114,4 +114,42 @@ public class RequestDAO {
         }
         return features;
     }
+
+    public List<Request> getPendingRequestsByManager(int managerId) throws SQLException {
+        List<Request> list = new ArrayList<>();
+
+        String sql = """
+        SELECT r.request_id, r.user_id, r.from_date, r.to_date, r.reason, r.leave_type_id
+        FROM requests r
+        JOIN users u ON r.user_id = u.user_id
+        LEFT JOIN request_approvals ra ON r.request_id = ra.request_id
+        WHERE u.manager_id = ?
+          AND (ra.approval_id IS NULL OR ra.decision IS NULL)
+    """;
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, managerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Request r = new Request();
+                    r.setRequestId(rs.getInt("request_id"));
+                    r.setUserId(rs.getInt("user_id"));
+                    r.setFromDate(rs.getDate("from_date"));
+                    r.setToDate(rs.getDate("to_date"));
+                    r.setReason(rs.getString("reason"));
+
+                    LeaveType lt = new LeaveType();
+                    lt.setLeaveTypeId(rs.getInt("leave_type_id"));
+                    r.setLeaveType(lt);
+
+                    list.add(r);
+                }
+            }
+        }
+
+        return list;
+    }
+
 }

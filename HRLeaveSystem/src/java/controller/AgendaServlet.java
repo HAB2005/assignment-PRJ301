@@ -1,6 +1,7 @@
 package controller;
 
 import dao.AgendaDAO;
+import dao.RequestDAO;
 import entity.Request;
 import entity.User;
 import jakarta.servlet.ServletException;
@@ -9,7 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AgendaServlet extends HttpServlet {
 
@@ -23,17 +29,32 @@ public class AgendaServlet extends HttpServlet {
         User currentUser = (User) session.getAttribute("user");
 
         // Lấy link người dùng đã click từ menu (từ URI)
-        String fullURI = req.getRequestURI(); // ví dụ: /leave_system/department_head/view_and_approve_subordinates'_agenda
-        String contextPath = req.getContextPath(); // /leave_system
-        String featureLink = fullURI.substring(contextPath.length() + 1); // kết quả: department_head/view_and_approve_subordinates'_agenda
+        String fullURI = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String featureLink = fullURI.substring(contextPath.length() + 1);
 
-        // Lưu lại đường link để dùng ở view
         req.setAttribute("currentFeatureLink", featureLink);
 
         // Lấy danh sách cấp dưới
         List<User> subordinates = dao.getSubordinates(currentUser.getUserId());
-
         req.setAttribute("subordinates", subordinates);
+
+        // Lấy danh sách đơn chưa duyệt của cấp dưới
+        RequestDAO requestDAO = new RequestDAO();
+        List<Request> pendingRequests = null;
+        try {
+            pendingRequests = requestDAO.getPendingRequestsByManager(currentUser.getUserId());
+        } catch (SQLException ex) {
+            Logger.getLogger(AgendaServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Lấy ra các userId có đơn chưa duyệt
+        Set<Integer> pendingUserIds = new HashSet<>();
+        for (Request r : pendingRequests) {
+            pendingUserIds.add(r.getUserId());
+        }
+        req.setAttribute("pendingUserIds", pendingUserIds);
+
         req.getRequestDispatcher("/common/subordinates.jsp").forward(req, resp);
     }
 

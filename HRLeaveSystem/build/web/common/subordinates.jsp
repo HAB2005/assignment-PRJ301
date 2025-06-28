@@ -35,6 +35,8 @@
     </head>
     <body>
         <h2>Danh sách cấp dưới</h2>
+        <input type="text" id="searchInput" placeholder="🔍 Tìm theo tên..." onkeyup="filterSubordinates()" style="margin-bottom: 10px; padding: 5px; width: 300px;" />
+
         <table>
             <thead>
                 <tr>
@@ -47,7 +49,14 @@
             </thead>
             <tbody>
                 <c:forEach var="u" items="${subordinates}" varStatus="loop">
-                    <tr>
+                    <c:set var="highlight" value="false" />
+                    <c:forEach var="id" items="${pendingUserIds}">
+                        <c:if test="${id == u.userId}">
+                            <c:set var="highlight" value="true" />
+                        </c:if>
+                    </c:forEach>
+
+                    <tr style="<c:if test='${highlight}'>background-color: #fff3cd;</c:if>">
                         <td>${loop.index + 1}</td>
                         <td>${u.fullName}</td>
                         <td>${u.email}</td>
@@ -61,6 +70,8 @@
                     </tr>
                 </c:forEach>
             </tbody>
+
+
         </table>
 
         <c:if test="${not empty roles}">
@@ -68,5 +79,24 @@
             <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
             <a class="back-link" href="${pageContext.request.contextPath}/${rolePath}/menu">⬅ Quay lại Menu</a>
         </c:if>
+
+        <script>
+            function filterSubordinates() {
+                const input = document.getElementById("searchInput");
+                const filter = input.value.toLowerCase();
+                const table = document.querySelector("table");
+                const rows = table.getElementsByTagName("tr");
+
+                // Bắt đầu từ hàng thứ 1 vì hàng 0 là header
+                for (let i = 1; i < rows.length; i++) {
+                    const nameCell = rows[i].getElementsByTagName("td")[1]; // Cột họ tên
+                    if (nameCell) {
+                        const name = nameCell.textContent.toLowerCase();
+                        rows[i].style.display = name.includes(filter) ? "" : "none";
+                    }
+                }
+            }
+        </script>
+
     </body>
 </html>
