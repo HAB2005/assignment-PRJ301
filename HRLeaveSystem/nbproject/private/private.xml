@@ -5,11 +5,12 @@
         <group>
             <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/dao/AgendaDAO.java</file>
             <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/web/WEB-INF/web.xml</file>
-            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/web/common/viewOwnAgenda.jsp</file>
+            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/web/common/menu.jsp</file>
+            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/entity/RequestApproval.java</file>
             <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/web/common/viewSubordinateAgenda.jsp</file>
-            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/controller/ApprovalServlet.java</file>
+            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/entity/Request.java</file>
+            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/dao/UserDAO.java</file>
             <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/controller/AgendaServlet.java</file>
-            <file>file:/C:/Users/HOANGANH/Documents/GitHub/assignment-PRJ301/HRLeaveSystem/src/java/controller/LoginServlet.java</file>
         </group>
     </open-files>
 </project-private>

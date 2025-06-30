@@ -42,19 +42,19 @@
     </servlet>
     <servlet>
         <servlet-name>viewOwnAgendaEmployee</servlet-name>
-        <servlet-class>controller.ViewMyAgendaController</servlet-class>
+        <servlet-class>controller.AgendaServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>viewOwnAgendaDepartmentHead</servlet-name>
-        <servlet-class>controller.ViewMyAgendaController</servlet-class>
+        <servlet-class>controller.AgendaServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>viewOwnAgendaDirectManager</servlet-name>
-        <servlet-class>controller.ViewMyAgendaController</servlet-class>
+        <servlet-class>controller.AgendaServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>viewOwnAgendaGeneralManager</servlet-name>
-        <servlet-class>controller.ViewMyAgendaController</servlet-class>
+        <servlet-class>controller.AgendaServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>viewSubAgendaDirectManager</servlet-name>
@@ -71,6 +71,10 @@
     <servlet>
         <servlet-name>ApprovalDepartmentHead</servlet-name>
         <servlet-class>controller.ApprovalServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>contactHR</servlet-name>
+        <servlet-class>controller.ContactHRServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
@@ -133,15 +137,19 @@
         <url-pattern>/direct_manager/view_and_approve_subordinates'_agenda</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>viewSubAgendaGeneralManaeger</servlet-name>
-        <url-pattern>/general_manager/view_subordinates'_leave_requests</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>viewSubAgendaDepartmentHead</servlet-name>
         <url-pattern>/department_head/view_and_approve_subordinates'_agenda</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ApprovalDepartmentHead</servlet-name>
         <url-pattern>/department_head/approve_agenda</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>viewSubAgendaGeneralManaeger</servlet-name>
+        <url-pattern>/general_manager/view_and_approve_subordinates'_agenda</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>contactHR</servlet-name>
+        <url-pattern>/contactHR</url-pattern>
     </servlet-mapping>
 </web-app>

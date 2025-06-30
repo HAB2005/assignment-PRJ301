@@ -127,15 +127,21 @@
         </script>
 
         <h3>Danh sách đơn xin nghỉ phép</h3>
+
+        <c:if test="${not empty roles}">
+            <c:set var="role" value="${roles[0].roleName}" />
+            <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
+            <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <input type="text" id="searchInput" placeholder="Tìm theo loại nghỉ hoặc ngày..." 
+                       onkeyup="filterTable()" style="flex-grow: 1; padding: 5px; margin-right: 10px;">
+                <a href="${pageContext.request.contextPath}/${rolePath}/create_leave_request" class="btn-create">+ Tạo đơn mới</a>
+            </div>
+        </c:if>
         <c:set var="role" value="${roles[0].roleName}" />
         <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
-        <c:if test="${not empty selectedUserRequests}">
-            <c:if test="${empty rolePath && not empty roles}">
-                <c:set var="role" value="${roles[0].roleName}" />
-                <c:set var="rolePath" value="${fn:toLowerCase(fn:replace(role, ' ', '_'))}" />
-            </c:if>
 
-            <table>
+        <c:if test="${not empty selectedUserRequests}">
+            <table id="requestTable">
                 <thead>
                     <tr>
                         <th>STT</th>
@@ -144,41 +150,71 @@
                         <th>Loại nghỉ</th>
                         <th>Lý do</th>
                         <th>Trạng thái</th>
+                        <th>Ghi chú phê duyệt</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:forEach var="r" items="${selectedUserRequests}" varStatus="loop">
-                        <tr>
-                            <td>${loop.index + 1}</td>
-                            <td><fmt:formatDate value="${r.fromDate}" pattern="dd/MM/yyyy"/></td>
-                            <td><fmt:formatDate value="${r.toDate}" pattern="dd/MM/yyyy"/></td>
-                            <td>${r.leaveType.typeName}</td>
-                            <td>${r.reason}</td>
-                            <td class="status-${fn:toLowerCase(r.status)}">
-                                <c:choose>
-                                    <c:when test="${canApprove && r.status == 'Pending'}">
-                                        <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}" style="display:inline;">
-                                            <input type="hidden" name="requestId" value="${r.requestId}" />
-                                            <input type="hidden" name="userId" value="${selectedUser.userId}" />
-                                            <button type="submit" name="action" value="Approved">✔ Duyệt</button>
-                                            <button type="submit" name="action" value="Rejected">✖ Từ chối</button>
-                                        </form>
-                                    </c:when>
-                                    <c:otherwise>
-                                        ${r.status}
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-            </table>
-        </c:if>
+                        <c:choose>
+                            <c:when test="${canApprove && r.status == 'Pending'}">
+                                <!-- 🟢 Người duyệt được → hiện form duyệt -->
+                            <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
+                                <input type="hidden" name="requestId" value="${r.requestId}" />
+                                <input type="hidden" name="userId" value="${selectedUser.userId}" />
+                                <tr>
+                                    <td>${loop.index + 1}</td>
+                                    <td><fmt:formatDate value="${r.fromDate}" pattern="dd/MM/yyyy" /></td>
+                                    <td><fmt:formatDate value="${r.toDate}" pattern="dd/MM/yyyy" /></td>
+                                    <td>${r.leaveType.typeName}</td>
+                                    <td>${r.reason}</td>
+                                    <td class="status-${fn:toLowerCase(r.status)}">
+                                        <button type="submit" name="action" value="Approved">✔ Duyệt</button>
+                                        <button type="submit" name="action" value="Rejected">✖ Từ chối</button>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="comment" placeholder="Ghi chú"/>
+                                    </td>
+                                </tr>
+                            </form>
+                        </c:when>
+                        <c:otherwise>
+                            <!-- 🔒 Không duyệt được -->
+                            <tr>
+                                <td>${loop.index + 1}</td>
+                                <td><fmt:formatDate value="${r.fromDate}" pattern="dd/MM/yyyy" /></td>
+                                <td><fmt:formatDate value="${r.toDate}" pattern="dd/MM/yyyy" /></td>
+                                <td>${r.leaveType.typeName}</td>
+                                <td>${r.reason}</td>
+                                <td class="status-${fn:toLowerCase(r.status)}">${r.status}</td>
+                                <td>${requestIdToComment[r.requestId]}</td>
+                            </tr>
+                        </c:otherwise>
+                    </c:choose>
+                </c:forEach>
 
-        <c:if test="${empty selectedUserRequests}">
-            <p>Người này chưa có đơn xin nghỉ nào.</p>
-        </c:if>
+            </tbody>
+        </table>
+    </c:if>
 
-        <a href="${pageContext.request.contextPath}/${currentFeatureLink}">⬅ Quay lại danh sách cấp dưới</a>
-    </body>
+    <c:if test="${empty selectedUserRequests}">
+        <p>Người này chưa có đơn xin nghỉ nào.</p>
+    </c:if> 
+
+    <c:choose>
+        <c:when test="${fn:endsWith(currentFeatureLink, 'view_own_agenda')}">
+            <a href="${pageContext.request.contextPath}/${rolePath}/menu">
+                ⬅ Quay lại Menu
+            </a>
+        </c:when>
+        <c:otherwise>
+            <a href="${pageContext.request.contextPath}/${currentFeatureLink}">
+                ⬅ Quay lại danh sách cấp dưới
+            </a><br><br>
+            <a href="${pageContext.request.contextPath}/${rolePath}/menu">
+                ⬅ Quay lại Menu
+            </a>
+        </c:otherwise>
+    </c:choose>
+
+</body>
 </html>

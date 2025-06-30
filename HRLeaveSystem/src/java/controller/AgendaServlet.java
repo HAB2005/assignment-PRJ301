@@ -3,6 +3,7 @@ package controller;
 import dao.AgendaDAO;
 import dao.RequestDAO;
 import entity.Request;
+import entity.RequestApproval;
 import entity.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -11,51 +12,104 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class AgendaServlet extends HttpServlet {
 
-    AgendaDAO dao = new AgendaDAO();
+    RequestDAO requestDAO = new RequestDAO();
+    AgendaDAO agendaDAO = new AgendaDAO();
 
-    @Override
+     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession session = req.getSession();
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect(req.getContextPath() + "/common/login.jsp");
+            return;
+        }
+
         User currentUser = (User) session.getAttribute("user");
+        String userIdParam = req.getParameter("userId");
 
-        // Lấy link người dùng đã click từ menu (từ URI)
-        String fullURI = req.getRequestURI();
-        String contextPath = req.getContextPath();
-        String featureLink = fullURI.substring(contextPath.length() + 1);
+        String servletPath = req.getServletPath(); // /manager/view_and_approve_subordinate_agenda
+        String[] pathParts = servletPath.split("/");
 
-        req.setAttribute("currentFeatureLink", featureLink);
+        String role = pathParts.length > 1 ? pathParts[1] : "";
+        String featureName = pathParts.length > 2 ? pathParts[2] : "";
+        String currentFeatureLink = role + "/" + featureName;
 
-        // Lấy danh sách cấp dưới
-        List<User> subordinates = dao.getSubordinates(currentUser.getUserId());
-        req.setAttribute("subordinates", subordinates);
+        // ✅ Xem chính mình
+        if ("view_own_agenda".equals(featureName)) {
+            List<Request> requests = requestDAO.getRequestsByUserId(currentUser.getUserId());
+            req.setAttribute("selectedUserRequests", requests);
 
-        // Lấy danh sách đơn chưa duyệt của cấp dưới
-        RequestDAO requestDAO = new RequestDAO();
-        List<Request> pendingRequests = null;
+            Map<Integer, String> requestIdToComment = agendaDAO.getApprovalCommentsForRequests(
+                    requests.stream().map(Request::getRequestId).collect(Collectors.toList())
+            );
+            req.setAttribute("requestIdToComment", requestIdToComment);
+            req.setAttribute("selectedUser", currentUser);
+            req.setAttribute("canApprove", false);
+            req.setAttribute("currentFeatureLink", currentFeatureLink); // ⚠️ Thêm dòng này
+
+            req.getRequestDispatcher("/common/viewAgenda.jsp").forward(req, resp);
+            return;
+        }
+
+        // ✅ Xem danh sách cấp dưới
+        if (userIdParam == null) {
+            try {
+                List<User> subordinates = agendaDAO.getSubordinates(currentUser.getUserId());
+                req.setAttribute("subordinates", subordinates);
+
+                List<Request> pendingRequests = requestDAO.getPendingRequestsByManager(currentUser.getUserId());
+                Set<Integer> pendingUserIds = pendingRequests.stream()
+                        .map(Request::getUserId)
+                        .collect(Collectors.toSet());
+                req.setAttribute("pendingUserIds", pendingUserIds);
+
+                req.setAttribute("currentFeatureLink", currentFeatureLink);
+
+                req.getRequestDispatcher("/common/subordinates.jsp").forward(req, resp);
+                return;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw new ServletException("Lỗi khi tải danh sách cấp dưới", e);
+            }
+        }
+
+        // ✅ Xem chi tiết agenda của cấp dưới cụ thể
         try {
-            pendingRequests = requestDAO.getPendingRequestsByManager(currentUser.getUserId());
-        } catch (SQLException ex) {
-            Logger.getLogger(AgendaServlet.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            int viewingUserId = Integer.parseInt(userIdParam);
 
-        // Lấy ra các userId có đơn chưa duyệt
-        Set<Integer> pendingUserIds = new HashSet<>();
-        for (Request r : pendingRequests) {
-            pendingUserIds.add(r.getUserId());
-        }
-        req.setAttribute("pendingUserIds", pendingUserIds);
+            List<Request> requests = requestDAO.getRequestsByUserId(viewingUserId);
+            req.setAttribute("selectedUserRequests", requests);
 
-        req.getRequestDispatcher("/common/subordinates.jsp").forward(req, resp);
+            Map<Integer, String> requestIdToComment = agendaDAO.getApprovalCommentsForRequests(
+                    requests.stream().map(Request::getRequestId).collect(Collectors.toList())
+            );
+            req.setAttribute("requestIdToComment", requestIdToComment);
+
+            User selectedUser = agendaDAO.getUserById(viewingUserId);
+            req.setAttribute("selectedUser", selectedUser);
+
+            boolean isViewingSelf = (viewingUserId == currentUser.getUserId());
+
+            boolean canApprove = false;
+            if ("view_and_approve_subordinates'_agenda".equals(featureName) && !isViewingSelf) {
+                canApprove = agendaDAO.hasApprovalPermission(currentUser.getUserId());
+            }
+
+            req.setAttribute("canApprove", canApprove);
+            req.setAttribute("currentFeatureLink", currentFeatureLink);
+
+            req.getRequestDispatcher("/common/viewAgenda.jsp").forward(req, resp);
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid user ID format");
+        }
     }
 
     @Override
@@ -70,45 +124,59 @@ public class AgendaServlet extends HttpServlet {
             return;
         }
 
-        // Lấy người dùng hiện tại
         User currentUser = (User) session.getAttribute("user");
-
-        // Bắt buộc phải có userId (người đang được xem)
-        int targetUserId = Integer.parseInt(req.getParameter("userId"));
-
-        // 🔹 Nếu có thông tin duyệt đơn được gửi lên thì xử lý
         String requestIdParam = req.getParameter("requestId");
-        String action = req.getParameter("action"); // Approved hoặc Rejected
+        String action = req.getParameter("action");
+        String comment = req.getParameter("comment");
+        String userIdParam = req.getParameter("userId");
+
+        String servletPath = req.getServletPath(); // /manager/view_and_approve_subordinate_agenda
+        String[] pathParts = servletPath.split("/");
+
+        String role = pathParts.length > 1 ? pathParts[1] : "";
+        String featureName = pathParts.length > 2 ? pathParts[2] : "";
+
+        int targetUserId = -1;
+        try {
+            targetUserId = Integer.parseInt(userIdParam);
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + servletPath);
+            return;
+        }
 
         if (requestIdParam != null && action != null) {
             try {
                 int requestId = Integer.parseInt(requestIdParam);
 
-                // Gọi DAO để cập nhật trạng thái duyệt đơn
-                dao.updateRequestStatus(requestId, action, currentUser.getUserId());
+                // ✅ Kiểm tra quyền duyệt đơn trước khi thao tác
+                boolean canApprove = "view_and_approve_subordinates'_agenda".equals(featureName)
+                        && targetUserId != currentUser.getUserId()
+                        && agendaDAO.hasApprovalPermission(currentUser.getUserId());
+
+                if (canApprove) {
+                    // Cập nhật trạng thái đơn
+                    agendaDAO.updateRequestStatus(requestId, action, currentUser.getUserId());
+
+                    // Ghi nhận duyệt đơn
+                    RequestApproval approval = new RequestApproval();
+                    approval.setRequestId(requestId);
+                    approval.setApproverId(currentUser.getUserId());
+                    approval.setDecision(action);
+                    approval.setComments(comment);
+                    agendaDAO.insertApproval(approval);
+                } else {
+                    // Không có quyền → không cho thao tác
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền duyệt đơn này.");
+                    return;
+                }
+
             } catch (NumberFormatException e) {
-                e.printStackTrace(); // Log lỗi nếu requestId sai định dạng
+                e.printStackTrace();
             }
         }
 
-        // 🔸 Dù có duyệt hay không, luôn thực hiện các bước dưới đây (giữ nguyên logic cũ)
-        User selectedUser = dao.getUserById(targetUserId);
-        List<Request> requests = dao.getRequestsByUser(targetUserId);
-
-        boolean canApprove = dao.hasApprovalPermission(currentUser.getUserId());
-
-        req.setAttribute("selectedUser", selectedUser);
-        req.setAttribute("selectedUserRequests", requests);
-        req.setAttribute("canApprove", canApprove);
-
-        // Lưu lại link để giữ tính năng "quay lại menu"
-        String fullURI = req.getRequestURI();
-        String contextPath = req.getContextPath();
-        String featureLink = fullURI.substring(contextPath.length() + 1);
-        req.setAttribute("currentFeatureLink", featureLink);
-
-        // Chuyển đến trang hiển thị agenda của cấp dưới
-        req.getRequestDispatcher("/common/viewSubordinateAgenda.jsp").forward(req, resp);
+        // Quay lại đúng user
+        resp.sendRedirect(req.getContextPath() + servletPath + "?userId=" + targetUserId);
     }
 
 }

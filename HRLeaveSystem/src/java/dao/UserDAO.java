@@ -34,8 +34,6 @@ public class UserDAO {
 
                 int managerId = rs.getInt("manager_id");
                 user.setManagerId(rs.wasNull() ? null : managerId);
-
-                // Gán vai trò
                 user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
 
                 return user;

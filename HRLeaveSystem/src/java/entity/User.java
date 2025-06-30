@@ -9,7 +9,7 @@ public class User {
     private String fullName;
     private String email;
     private Department department;
-    private Integer managerId; //Có thể null
+    private Integer managerId; 
     private List<Role> roles;
 
     public int getUserId() {

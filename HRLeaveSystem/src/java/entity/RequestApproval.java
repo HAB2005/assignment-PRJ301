@@ -4,7 +4,7 @@ public class RequestApproval {
     private int approvalId;
     private int requestId;
     private int approverId;
-    private String decision; // "Approve" or "Reject"
+    private String decision; 
     private String comments;
 
     public int getApprovalId() {

@@ -7,6 +7,7 @@ import entity.Feature;
 import entity.Role;
 import entity.User;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,8 +21,8 @@ import java.util.Map;
 public class LoginServlet extends HttpServlet {
 
     private final UserDAO userDAO = new UserDAO();
-    private final RoleDAO roleDAO = new RoleDAO();         // bạn đã có getRolesByUser
-    private final FeatureDAO featureDAO = new FeatureDAO(); // bạn đã có getFeaturesByRoles
+    private final RoleDAO roleDAO = new RoleDAO();
+    private final FeatureDAO featureDAO = new FeatureDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -29,16 +30,22 @@ public class LoginServlet extends HttpServlet {
 
         String username = request.getParameter("username").trim();
         String password = request.getParameter("password").trim();
+        String remember = request.getParameter("remember"); // 🆕
 
         try {
-            // Bước 1: Xác thực tài khoản
             User user = userDAO.login(username, password);
 
             if (user != null) {
-                // Bước 2: Lấy danh sách vai trò của người dùng
+
+                if ("on".equals(remember)) {
+                    // Tên cookie sẽ là: rememberedUsername_username
+                    Cookie userCookie = new Cookie("rememberedUsername_" + username, password);
+                    userCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                    response.addCookie(userCookie);
+                }
+
                 List<Role> roles = roleDAO.getRolesByUser(user.getUserId());
 
-                // Bước 2.1: Sắp xếp vai trò theo mức độ ưu tiên (nếu cần)
                 for (int i = 0; i < roles.size() - 1; i++) {
                     for (int j = i + 1; j < roles.size(); j++) {
                         if (getPriority(roles.get(j).getRoleName()) < getPriority(roles.get(i).getRoleName())) {
@@ -49,19 +56,13 @@ public class LoginServlet extends HttpServlet {
                     }
                 }
 
-                // Gán roles đã sắp xếp vào user
                 user.setRoles(roles);
 
-                // Bước 3: Lấy danh sách feature
                 List<Feature> features = featureDAO.getFeaturesByUserId(user.getUserId());
-
-                // Bước 4: Tạo Map để ánh xạ feature name -> link path
                 Map<String, String> featureLinks = new HashMap<>();
 
                 if (!roles.isEmpty()) {
-                    // Dùng role đầu tiên (ưu tiên nhất)
                     String rolePath = roles.get(0).getRoleName().toLowerCase().replace(" ", "_");
-
                     for (Feature f : features) {
                         String featurePath = f.getFeatureName().toLowerCase().replace(" ", "_");
                         String fullPath = rolePath + "/" + featurePath;
@@ -69,7 +70,6 @@ public class LoginServlet extends HttpServlet {
                     }
                 }
 
-                // Bước 5: Lưu thông tin vào session
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
                 session.setAttribute("roles", roles);
@@ -77,11 +77,9 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("featureLinks", featureLinks);
                 session.setAttribute("department", user.getDepartment());
 
-                // Bước 6: Chuyển hướng đến trang menu chung
                 response.sendRedirect("common/menu.jsp");
 
             } else {
-                // Sai tài khoản hoặc mật khẩu
                 request.setAttribute("error", "Tài khoản hoặc mật khẩu không đúng!");
                 request.getRequestDispatcher("/common/login.jsp").forward(request, response);
             }

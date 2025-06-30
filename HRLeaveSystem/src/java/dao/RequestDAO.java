@@ -58,8 +58,8 @@ public class RequestDAO {
                 Request r = new Request();
                 r.setRequestId(rs.getInt("request_id"));
                 r.setUserId(rs.getInt("user_id"));
-                r.setFromDate(rs.getDate("from_date"));  // java.sql.Date
-                r.setToDate(rs.getDate("to_date"));      // java.sql.Date
+                r.setFromDate(rs.getDate("from_date"));
+                r.setToDate(rs.getDate("to_date"));
                 r.setReason(rs.getString("reason"));
 
                 LeaveType lt = new LeaveType();
@@ -119,12 +119,17 @@ public class RequestDAO {
         List<Request> list = new ArrayList<>();
 
         String sql = """
+        WITH subordinates (user_id) AS (
+            SELECT user_id FROM users WHERE manager_id = ?
+            UNION ALL
+            SELECT u.user_id FROM users u
+            JOIN subordinates s ON u.manager_id = s.user_id
+        )
         SELECT r.request_id, r.user_id, r.from_date, r.to_date, r.reason, r.leave_type_id
         FROM requests r
-        JOIN users u ON r.user_id = u.user_id
+        JOIN subordinates s ON r.user_id = s.user_id
         LEFT JOIN request_approvals ra ON r.request_id = ra.request_id
-        WHERE u.manager_id = ?
-          AND (ra.approval_id IS NULL OR ra.decision IS NULL)
+        WHERE ra.approval_id IS NULL OR ra.decision IS NULL
     """;
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {

@@ -3,12 +3,16 @@ package dao;
 import entity.Department;
 import entity.LeaveType;
 import entity.Request;
+import entity.RequestApproval;
 import entity.User;
 import util.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class AgendaDAO {
 
@@ -128,8 +132,45 @@ public class AgendaDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
+    }
+
+    public void insertApproval(RequestApproval approval) {
+        String sql = "INSERT INTO request_approvals (request_id, approver_id, decision, comments) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, approval.getRequestId());
+            ps.setInt(2, approval.getApproverId());
+            ps.setString(3, approval.getDecision());
+            ps.setString(4, approval.getComments());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+        }
+    }
+
+    public Map<Integer, String> getApprovalCommentsForRequests(List<Integer> requestIds) {
+        Map<Integer, String> result = new HashMap<>();
+        if (requestIds == null || requestIds.isEmpty()) {
+            return result;
+        }
+
+        String placeholders = requestIds.stream().map(id -> "?").collect(Collectors.joining(","));
+        String sql = "SELECT request_id, comments FROM request_approvals "
+                + "WHERE approval_id IN (SELECT MAX(approval_id) FROM request_approvals WHERE request_id IN (" + placeholders + ") GROUP BY request_id)";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            for (int i = 0; i < requestIds.size(); i++) {
+                ps.setInt(i + 1, requestIds.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.put(rs.getInt("request_id"), rs.getString("comments"));
+            }
+        } catch (Exception e) {
+        }
+
+        return result;
     }
 
 }
