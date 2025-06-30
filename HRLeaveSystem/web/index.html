@@ -3,12 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <title>Leave Request System</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <style>
             body {
                 margin: 0;
                 padding: 0;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+                background: linear-gradient(to right, #c7d2fe, #e9d5ff, #fbcfe8);
                 height: 100vh;
                 display: flex;
                 justify-content: center;
@@ -16,63 +17,41 @@
             }
 
             .container {
-                background-color: white;
-                padding: 50px 70px;
+                background-color: rgba(255, 255, 255, 0.92);
+                padding: 50px 60px;
                 border-radius: 20px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
                 text-align: center;
-                animation: fadeIn 1s ease-in-out;
+                max-width: 400px;
+                width: 100%;
             }
 
             h1 {
-                font-size: 40px;
+                font-size: 28px;
+                font-weight: bold;
+                color: #6b21a8;
                 margin-bottom: 30px;
-                color: #2c3e50;
-            }
-
-            .login-btn {
-                background: linear-gradient(to right, #36d1dc, #5b86e5);
-                border: none;
-                padding: 15px 40px;
-                font-size: 18px;
-                color: white;
-                border-radius: 50px;
-                cursor: pointer;
-                transition: 0.3s ease;
-            }
-
-            .login-btn:hover {
-                transform: scale(1.05);
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
             }
 
             .login-btn {
                 display: inline-block;
-                background: linear-gradient(to right, #36d1dc, #5b86e5);
-                text-decoration: none;
-                padding: 15px 40px;
-                font-size: 18px;
+                background-color: #9333ea;
                 color: white;
-                border-radius: 50px;
-                transition: 0.3s ease;
+                font-weight: bold;
+                font-size: 16px;
+                padding: 14px 32px;
+                border: none;
+                border-radius: 12px;
+                text-decoration: none;
+                cursor: pointer;
+                transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
             }
 
             .login-btn:hover {
+                background-color: #7e22ce;
                 transform: scale(1.05);
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             }
-
         </style>
     </head>
     <body>
@@ -81,11 +60,9 @@
             <a id="loginLink" class="login-btn">Login</a>
 
             <script>
-                // Tự động gán context path và route
                 const contextPath = window.location.pathname.split('/')[1];
                 document.getElementById('loginLink').href = `/${contextPath}/login`;
             </script>
-
         </div>
     </body>
 </html>
