@@ -4,11 +4,13 @@ import entity.Department;
 import entity.LeaveType;
 import entity.Request;
 import entity.RequestApproval;
+import entity.Role;
 import entity.User;
 import util.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,7 @@ public class AgendaDAO {
 
     public List<User> getSubordinates(int managerId) {
         List<User> list = new ArrayList<>();
+
         String sql = """
         WITH RecursiveSubordinates AS (
             SELECT * FROM users WHERE manager_id = ?
@@ -28,25 +31,38 @@ public class AgendaDAO {
         SELECT rs.*, d.department_name
         FROM RecursiveSubordinates rs
         JOIN departments d ON rs.department_id = d.department_id
-        """;
+    """;
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, managerId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 User u = new User();
                 u.setUserId(rs.getInt("user_id"));
+                u.setUsername(rs.getString("username"));
+                u.setPassword(rs.getString("password"));
                 u.setFullName(rs.getString("full_name"));
                 u.setEmail(rs.getString("email"));
+                u.setManagerId(rs.getInt("manager_id"));
 
+                // Gán department
                 Department d = new Department();
+                d.setDepartmentId(rs.getInt("department_id"));
                 d.setDepartmentName(rs.getString("department_name"));
                 u.setDepartment(d);
 
+                // Gán roles
+                RoleDAO roleDao = new RoleDAO();
+                List<Role> roles = roleDao.getRolesByUser(u.getUserId());
+                roles.sort(Comparator.comparingInt(r -> roleDao.getRolePriority(r.getRoleName())));
+                u.setRoles(roles);
+
                 list.add(u);
             }
-        } catch (Exception e) {
+
+        } catch (Exception e) {    
         }
 
         return list;

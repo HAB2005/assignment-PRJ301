@@ -135,48 +135,154 @@
                 color: white;
             }
 
+            .toggle-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .toggle-button {
+                display: block;               /* Đảm bảo nó chiếm nguyên dòng để căn giữa được */
+                margin: 10px auto;            /* ✅ Căn giữa ngang */
+                width: 400px;             /* ✅ Giữ độ rộng hợp lý */
+                background-color: #6b46c1;
+                color: white;
+                padding: 6px 14px;
+                font-size: 15px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                text-align: left;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.2s ease;
+            }
+
+            .toggle-button:hover {
+                background-color: #553c9a;
+            }
+
+            .toggle-content {
+                overflow: hidden;
+                max-height: 0;
+                opacity: 0;
+                display: block;
+                transition: max-height 0.4s ease, opacity 0.4s ease;
+            }
+
+            .toggle-content.show {
+                /*                max-height: 9999px;*/
+                opacity: 1;
+            }
+
+            .sub-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0 20px;
+            }
+
+            .sub-table th, .sub-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            /* ✅ màu cho dòng tiêu đề bảng */
+            .sub-table th {
+                background-color: #6b46c1;
+                color: white;
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
         <h2>Danh sách cấp dưới</h2>
         <input type="text" id="searchInput" placeholder="🔍 Tìm theo tên..." onkeyup="filterSubordinates()" style="margin-bottom: 10px; padding: 5px; width: 300px;" />
 
-        <table>
-            <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>Phòng ban</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="u" items="${subordinates}" varStatus="loop">
-                    <c:set var="highlight" value="false" />
-                    <c:forEach var="id" items="${pendingUserIds}">
-                        <c:if test="${id == u.userId}">
-                            <c:set var="highlight" value="true" />
-                        </c:if>
-                    </c:forEach>
-
-                    <tr style="<c:if test='${highlight}'>background-color: #fff3cd;</c:if>">
-                        <td>${loop.index + 1}</td>
-                        <td>${u.fullName}</td>
-                        <td>${u.email}</td>
-                        <td>${u.department.departmentName}</td>
-                        <td>
-                            <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
-                                <input type="hidden" name="userId" value="${u.userId}" />
-                                <button class="btn" type="submit">Xem agenda</button>
-                            </form>
-                        </td>
-                    </tr>
+        <c:if test="${fn:trim(roles[0].roleName) eq 'General Manager'}">
+            <div class="toggle-container">
+                <c:forEach var="dept" items="${departments}" varStatus="status">
+                    <button class="toggle-button" type="button" onclick="toggleVisibility('dept${status.index}')">
+                        ▶ Phòng: ${dept.departmentName}
+                    </button>
+                    <div id="dept${status.index}" class="toggle-content">
+                        <table class="sub-table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Vai trò</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:set var="count" value="1" />
+                                <c:forEach var="u" items="${subordinates}">
+                                    <c:if test="${u.department.departmentId == dept.departmentId}">
+                                        <tr>
+                                            <td>${count}</td>
+                                            <td>${u.fullName}</td>
+                                            <td>${u.email}</td>
+                                            <td>${u.roles[0].roleName}</td>
+                                            <td>
+                                                <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
+                                                    <input type="hidden" name="userId" value="${u.userId}" />
+                                                    <button class="btn" type="submit">Xem agenda</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <c:set var="count" value="${count + 1}" />
+                                    </c:if>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
                 </c:forEach>
-            </tbody>
+            </div>
+        </c:if>
 
 
-        </table>
+        <c:if test="${fn:trim(roles[0].roleName) eq 'Department Head'}">
+            <c:forEach var="group" items="${roleGroups}">
+                <button class="toggle-button" type="button" onclick="toggleVisibility('${group}')">
+                    ▶ Nhóm: ${group}
+                </button>
+                <div id="${group}" class="toggle-content">
+                    <table class="sub-table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Vai trò</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:set var="count" value="1" />
+                            <c:forEach var="u" items="${subordinates}">
+                                <c:if test="${u.roles[0].roleName eq group}">
+                                    <tr>
+                                        <td>${count}</td>
+                                        <td>${u.fullName}</td>
+                                        <td>${u.email}</td>
+                                        <td>${u.roles[0].roleName}</td>
+                                        <td>
+                                            <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
+                                                <input type="hidden" name="userId" value="${u.userId}" />
+                                                <button class="btn" type="submit">Xem agenda</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <c:set var="count" value="${count + 1}" />
+                                </c:if>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:forEach>
+        </c:if>
+
 
         <c:if test="${not empty roles}">
             <c:set var="role" value="${roles[0].roleName}" />        
@@ -186,20 +292,91 @@
 
         <script>
             function filterSubordinates() {
-                const input = document.getElementById("searchInput");
-                const filter = input.value.toLowerCase();
-                const table = document.querySelector("table");
-                const rows = table.getElementsByTagName("tr");
+                const input = document.getElementById("searchInput").value.toLowerCase();
+                const sections = document.querySelectorAll(".toggle-content");
 
-                // Bắt đầu từ hàng thứ 1 vì hàng 0 là header
-                for (let i = 1; i < rows.length; i++) {
-                    const nameCell = rows[i].getElementsByTagName("td")[1]; // Cột họ tên
-                    if (nameCell) {
-                        const name = nameCell.textContent.toLowerCase();
-                        rows[i].style.display = name.includes(filter) ? "" : "none";
+                // ✅ Nếu input trống: đóng toàn bộ + hiện tất cả dòng
+                if (!input) {
+                    sections.forEach(section => {
+                        const rows = section.querySelectorAll("tbody tr");
+
+                        rows.forEach(row => {
+                            row.style.display = "";
+                        });
+
+                        section.classList.remove("show");
+                        section.style.maxHeight = "0px";
+                        section.style.opacity = "0";
+
+                        // Đổi icon ▼ thành ▶
+                        const btn = section.previousElementSibling;
+                        if (btn && btn.innerHTML.includes("▼")) {
+                            btn.innerHTML = btn.innerHTML.replace("▼", "▶");
+                        }
+                    });
+                    return;
+                }
+
+                // ✅ Ngược lại: xử lý tìm kiếm như cũ
+                sections.forEach(section => {
+                    const rows = section.querySelectorAll("tbody tr");
+                    let matchFound = false;
+
+                    rows.forEach(row => {
+                        const nameCell = row.querySelector("td:nth-child(2)");
+                        const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+                        const match = name.includes(input);
+                        row.style.display = match ? "" : "none";
+                        if (match)
+                            matchFound = true;
+                    });
+
+                    if (matchFound) {
+                        section.classList.add("show");
+                        section.style.maxHeight = section.scrollHeight + "px";
+                        section.style.opacity = "1";
+
+                        const btn = section.previousElementSibling;
+                        if (btn && btn.innerHTML.includes("▶")) {
+                            btn.innerHTML = btn.innerHTML.replace("▶", "▼");
+                        }
+                    } else {
+                        section.classList.remove("show");
+                        section.style.maxHeight = "0px";
+                        section.style.opacity = "0";
+
+                        const btn = section.previousElementSibling;
+                        if (btn && btn.innerHTML.includes("▼")) {
+                            btn.innerHTML = btn.innerHTML.replace("▼", "▶");
+                        }
                     }
+                });
+            }
+        </script>
+
+        <script>
+            function toggleVisibility(id) {
+                const el = document.getElementById(id);
+                const btn = el.previousElementSibling;
+
+                if (el.classList.contains("show")) {
+                    // Đóng: thu gọn từ từ
+                    el.style.maxHeight = el.scrollHeight + "px"; // set về chiều cao hiện tại
+                    requestAnimationFrame(() => {
+                        el.style.maxHeight = "0px";
+                        el.classList.remove("show");
+                        el.style.opacity = "0";
+                    });
+                    btn.innerHTML = btn.innerHTML.replace("▼", "▶");
+                } else {
+                    // Mở: mở từ từ theo đúng chiều cao thật
+                    el.classList.add("show");
+                    el.style.opacity = "1";
+                    el.style.maxHeight = el.scrollHeight + "px";
+                    btn.innerHTML = btn.innerHTML.replace("▶", "▼");
                 }
             }
         </script>
+
     </body>
 </html>

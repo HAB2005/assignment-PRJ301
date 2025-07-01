@@ -8,7 +8,6 @@
         <title>Agenda của: ${selectedUser.fullName}</title>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
-        <link rel="stylesheet" href="your-calendar-style.css"> <!-- Gắn file CSS nếu cần -->
         <style>
             /* KHỐI BỌC TOÀN BỘ PHẦN NGOÀI LỊCH */
             .leave-section {

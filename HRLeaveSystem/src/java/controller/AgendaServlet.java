@@ -1,7 +1,10 @@
 package controller;
 
 import dao.AgendaDAO;
+import dao.DepartmentDAO;
 import dao.RequestDAO;
+import dao.RoleDAO;
+import entity.Department;
 import entity.Request;
 import entity.RequestApproval;
 import entity.User;
@@ -22,7 +25,7 @@ public class AgendaServlet extends HttpServlet {
     RequestDAO requestDAO = new RequestDAO();
     AgendaDAO agendaDAO = new AgendaDAO();
 
-     @Override
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -35,14 +38,13 @@ public class AgendaServlet extends HttpServlet {
         User currentUser = (User) session.getAttribute("user");
         String userIdParam = req.getParameter("userId");
 
-        String servletPath = req.getServletPath(); // /manager/view_and_approve_subordinate_agenda
+        String servletPath = req.getServletPath();
         String[] pathParts = servletPath.split("/");
 
         String role = pathParts.length > 1 ? pathParts[1] : "";
         String featureName = pathParts.length > 2 ? pathParts[2] : "";
         String currentFeatureLink = role + "/" + featureName;
 
-        // ✅ Xem chính mình
         if ("view_own_agenda".equals(featureName)) {
             List<Request> requests = requestDAO.getRequestsByUserId(currentUser.getUserId());
             req.setAttribute("selectedUserRequests", requests);
@@ -53,13 +55,12 @@ public class AgendaServlet extends HttpServlet {
             req.setAttribute("requestIdToComment", requestIdToComment);
             req.setAttribute("selectedUser", currentUser);
             req.setAttribute("canApprove", false);
-            req.setAttribute("currentFeatureLink", currentFeatureLink); // ⚠️ Thêm dòng này
+            req.setAttribute("currentFeatureLink", currentFeatureLink);
 
             req.getRequestDispatcher("/common/viewAgenda.jsp").forward(req, resp);
             return;
         }
 
-        // ✅ Xem danh sách cấp dưới
         if (userIdParam == null) {
             try {
                 List<User> subordinates = agendaDAO.getSubordinates(currentUser.getUserId());
@@ -71,17 +72,24 @@ public class AgendaServlet extends HttpServlet {
                         .collect(Collectors.toSet());
                 req.setAttribute("pendingUserIds", pendingUserIds);
 
+                DepartmentDAO departmentDAO = new DepartmentDAO();
+                List<Department> departments = departmentDAO.getAllDepartments();
+                req.setAttribute("departments", departments);
+
+                // ✅ Gọi RoleDAO để lấy danh sách role của cấp dưới
+                RoleDAO roleDAO = new RoleDAO();
+                List<String> roleGroups = roleDAO.getRoleNamesOfSubordinates(currentUser.getUserId());
+                req.setAttribute("roleGroups", roleGroups);
+
                 req.setAttribute("currentFeatureLink", currentFeatureLink);
 
                 req.getRequestDispatcher("/common/subordinates.jsp").forward(req, resp);
                 return;
             } catch (SQLException e) {
-                e.printStackTrace();
                 throw new ServletException("Lỗi khi tải danh sách cấp dưới", e);
             }
         }
 
-        // ✅ Xem chi tiết agenda của cấp dưới cụ thể
         try {
             int viewingUserId = Integer.parseInt(userIdParam);
 

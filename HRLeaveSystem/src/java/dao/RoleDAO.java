@@ -25,4 +25,46 @@ public class RoleDAO {
         }
         return roles;
     }
+
+    public int getRolePriority(String roleName) {
+        return switch (roleName.toLowerCase()) {
+            case "general manager" ->
+                1;
+            case "department head" ->
+                2;
+            case "direct manager" ->
+                3;
+            case "employee" ->
+                4;
+            default ->
+                99;
+        };
+    }
+
+    public List<String> getRoleNamesOfSubordinates(int managerId) throws SQLException {
+        String sql = """
+        WITH RecursiveSubordinates AS (
+            SELECT user_id FROM users WHERE manager_id = ?
+            UNION ALL
+            SELECT u.user_id FROM users u
+            JOIN RecursiveSubordinates r ON u.manager_id = r.user_id
+        )
+        SELECT DISTINCT r.role_name
+        FROM user_roles ur
+        JOIN roles r ON ur.role_id = r.role_id
+        JOIN RecursiveSubordinates rs ON ur.user_id = rs.user_id
+    """;
+
+        List<String> roleNames = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                roleNames.add(rs.getString("role_name"));
+            }
+        }
+        System.out.println("DEBUG roleNames = " + roleNames);
+        return roleNames;
+    }
+
 }
