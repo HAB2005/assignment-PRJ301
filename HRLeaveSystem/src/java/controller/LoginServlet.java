@@ -30,7 +30,7 @@ public class LoginServlet extends HttpServlet {
 
         String username = request.getParameter("username").trim();
         String password = request.getParameter("password").trim();
-        String remember = request.getParameter("remember"); // 🆕
+        String remember = request.getParameter("remember");
 
         try {
             User user = userDAO.login(username, password);
@@ -61,13 +61,15 @@ public class LoginServlet extends HttpServlet {
                 List<Feature> features = featureDAO.getFeaturesByUserId(user.getUserId());
                 Map<String, String> featureLinks = new HashMap<>();
 
-                if (!roles.isEmpty()) {
-                    String rolePath = roles.get(0).getRoleName().toLowerCase().replace(" ", "_");
-                    for (Feature f : features) {
-                        String featurePath = f.getFeatureName().toLowerCase().replace(" ", "_");
-                        String fullPath = rolePath + "/" + featurePath;
-                        featureLinks.put(f.getFeatureName(), fullPath);
-                    }
+                String rolePath = "admin";
+                if (roles != null && !roles.isEmpty()) {
+                    rolePath = roles.get(0).getRoleName().toLowerCase().replace(" ", "_");
+                }
+
+                for (Feature f : features) {
+                    String featurePath = f.getFeatureName().toLowerCase().replace(" ", "_");
+                    String fullPath = rolePath + "/" + featurePath;
+                    featureLinks.put(f.getFeatureName(), fullPath);
                 }
 
                 HttpSession session = request.getSession();
@@ -99,7 +101,6 @@ public class LoginServlet extends HttpServlet {
         if (roleName.equals("Direct Manager")) {
             return 3;
         }
-        return 4; // Employee hoặc vai trò thấp nhất
+        return 4;
     }
-
 }

@@ -63,7 +63,6 @@ public class RoleDAO {
                 roleNames.add(rs.getString("role_name"));
             }
         }
-        System.out.println("DEBUG roleNames = " + roleNames);
         return roleNames;
     }
 

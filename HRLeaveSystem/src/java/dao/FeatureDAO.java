@@ -10,14 +10,12 @@ public class FeatureDAO {
 
     public List<Feature> getFeaturesByUserId(int userId) throws SQLException {
         List<Feature> features = new ArrayList<>();
-        String sql = "SELECT DISTINCT f.feature_id, f.feature_name " +
-                     "FROM features f " +
-                     "JOIN role_features rf ON f.feature_id = rf.feature_id " +
-                     "JOIN user_roles ur ON rf.role_id = ur.role_id " +
-                     "WHERE ur.user_id = ?";
+        String sql = "SELECT DISTINCT f.feature_id, f.feature_name "
+                + "FROM features f "
+                + "JOIN user_features uf ON f.feature_id = uf.feature_id "
+                + "WHERE uf.user_id = ?";
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
 

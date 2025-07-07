@@ -62,7 +62,7 @@ public class AgendaDAO {
                 list.add(u);
             }
 
-        } catch (Exception e) {    
+        } catch (Exception e) {
         }
 
         return list;
@@ -119,8 +119,9 @@ public class AgendaDAO {
     }
 
     public boolean hasApprovalPermission(int userId) {
-        String sql = "SELECT 1 FROM user_roles ur JOIN role_features rf ON ur.role_id = rf.role_id "
-                + "JOIN features f ON rf.feature_id = f.feature_id WHERE ur.user_id = ? AND f.feature_name = 'View and approve subordinates'' agenda'";
+        String sql = "SELECT 1 FROM user_features uf "
+                + "JOIN features f ON uf.feature_id = f.feature_id "
+                + "WHERE uf.user_id = ? AND f.feature_name = 'View and approve subordinates'' agenda'";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();

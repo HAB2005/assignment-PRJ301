@@ -137,8 +137,8 @@ public class AgendaServlet extends HttpServlet {
         String action = req.getParameter("action");
         String comment = req.getParameter("comment");
         String userIdParam = req.getParameter("userId");
-
-        String servletPath = req.getServletPath(); // /manager/view_and_approve_subordinate_agenda
+        
+        String servletPath = req.getServletPath(); 
         String[] pathParts = servletPath.split("/");
 
         String role = pathParts.length > 1 ? pathParts[1] : "";
@@ -183,7 +183,6 @@ public class AgendaServlet extends HttpServlet {
             }
         }
 
-        // Quay lại đúng user
         resp.sendRedirect(req.getContextPath() + servletPath + "?userId=" + targetUserId);
     }
 
