@@ -73,8 +73,12 @@
         <servlet-class>controller.ApprovalServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>contactHR</servlet-name>
-        <servlet-class>controller.ContactHRServlet</servlet-class>
+        <servlet-name>adminMenu</servlet-name>
+        <jsp-file>/common/menu.jsp</jsp-file>
+    </servlet>
+    <servlet>
+        <servlet-name>adminCreateUser</servlet-name>
+        <servlet-class>controller.CreateUserServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
@@ -149,7 +153,11 @@
         <url-pattern>/general_manager/view_and_approve_subordinates'_agenda</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>contactHR</servlet-name>
-        <url-pattern>/contactHR</url-pattern>
+        <servlet-name>adminMenu</servlet-name>
+        <url-pattern>/admin/menu</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>adminCreateUser</servlet-name>
+        <url-pattern>/admin/create_user</url-pattern>
     </servlet-mapping>
 </web-app>

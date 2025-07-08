@@ -242,45 +242,47 @@
         </c:if>
 
 
-        <c:if test="${fn:trim(roles[0].roleName) eq 'Department Head'}">
-            <c:forEach var="group" items="${roleGroups}">
-                <button class="toggle-button" type="button" onclick="toggleVisibility('${group}')">
-                    ▶ Nhóm: ${group}
-                </button>
-                <div id="${group}" class="toggle-content">
-                    <table class="sub-table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Họ tên</th>
-                                <th>Email</th>
-                                <th>Vai trò</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:set var="count" value="1" />
-                            <c:forEach var="u" items="${subordinates}">
-                                <c:if test="${u.roles[0].roleName eq group}">
-                                    <tr>
-                                        <td>${count}</td>
-                                        <td>${u.fullName}</td>
-                                        <td>${u.email}</td>
-                                        <td>${u.roles[0].roleName}</td>
-                                        <td>
-                                            <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
-                                                <input type="hidden" name="userId" value="${u.userId}" />
-                                                <button class="btn" type="submit">Xem agenda</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    <c:set var="count" value="${count + 1}" />
-                                </c:if>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </c:forEach>
+        <c:if test="${(fn:trim(roles[0].roleName) eq 'Department Head' or not empty subordinates) 
+                      and fn:trim(roles[0].roleName) ne 'General Manager'}">
+
+              <c:forEach var="group" items="${roleGroups}">
+                  <button class="toggle-button" type="button" onclick="toggleVisibility('${group}')">
+                      ▶ Nhóm: ${group}
+                  </button>
+                  <div id="${group}" class="toggle-content">
+                      <table class="sub-table">
+                          <thead>
+                              <tr>
+                                  <th>STT</th>
+                                  <th>Họ tên</th>
+                                  <th>Email</th>
+                                  <th>Vai trò</th>
+                                  <th>Hành động</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <c:set var="count" value="1" />
+                              <c:forEach var="u" items="${subordinates}">
+                                  <c:if test="${u.roles[0].roleName eq group}">
+                                      <tr>
+                                          <td>${count}</td>
+                                          <td>${u.fullName}</td>
+                                          <td>${u.email}</td>
+                                          <td>${u.roles[0].roleName}</td>
+                                          <td>
+                                              <form method="post" action="${pageContext.request.contextPath}/${currentFeatureLink}">
+                                                  <input type="hidden" name="userId" value="${u.userId}" />
+                                                  <button class="btn" type="submit">Xem agenda</button>
+                                              </form>
+                                          </td>
+                                      </tr>
+                                      <c:set var="count" value="${count + 1}" />
+                                  </c:if>
+                              </c:forEach>
+                          </tbody>
+                      </table>
+                  </div>
+              </c:forEach>
         </c:if>
 
 

@@ -137,14 +137,14 @@ public class AgendaServlet extends HttpServlet {
         String action = req.getParameter("action");
         String comment = req.getParameter("comment");
         String userIdParam = req.getParameter("userId");
-        
-        String servletPath = req.getServletPath(); 
+
+        String servletPath = req.getServletPath();
+        System.out.println(servletPath);
         String[] pathParts = servletPath.split("/");
 
-        String role = pathParts.length > 1 ? pathParts[1] : "";
         String featureName = pathParts.length > 2 ? pathParts[2] : "";
 
-        int targetUserId = -1;
+        int targetUserId;
         try {
             targetUserId = Integer.parseInt(userIdParam);
         } catch (NumberFormatException e) {
@@ -156,34 +156,26 @@ public class AgendaServlet extends HttpServlet {
             try {
                 int requestId = Integer.parseInt(requestIdParam);
 
-                // ✅ Kiểm tra quyền duyệt đơn trước khi thao tác
                 boolean canApprove = "view_and_approve_subordinates'_agenda".equals(featureName)
                         && targetUserId != currentUser.getUserId()
                         && agendaDAO.hasApprovalPermission(currentUser.getUserId());
 
                 if (canApprove) {
-                    // Cập nhật trạng thái đơn
-                    agendaDAO.updateRequestStatus(requestId, action, currentUser.getUserId());
-
-                    // Ghi nhận duyệt đơn
                     RequestApproval approval = new RequestApproval();
                     approval.setRequestId(requestId);
                     approval.setApproverId(currentUser.getUserId());
                     approval.setDecision(action);
                     approval.setComments(comment);
-                    agendaDAO.insertApproval(approval);
+
+                    agendaDAO.insertApprovalIfNotExists(approval);
                 } else {
-                    // Không có quyền → không cho thao tác
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền duyệt đơn này.");
                     return;
                 }
-
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
+            } catch (NumberFormatException e) {                
             }
         }
 
         resp.sendRedirect(req.getContextPath() + servletPath + "?userId=" + targetUserId);
     }
-
 }

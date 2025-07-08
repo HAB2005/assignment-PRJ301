@@ -9,7 +9,6 @@
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
         <style>
-            /* KHỐI BỌC TOÀN BỘ PHẦN NGOÀI LỊCH */
             .leave-section {
                 padding: 30px 20px;
                 max-width: 1100px;
@@ -20,7 +19,6 @@
                 box-sizing: border-box;
             }
 
-            /* Tiêu đề & mô tả */
             .leave-section h3 {
                 text-align: center;
                 color: #4a4a4a;
@@ -34,7 +32,6 @@
                 color: #666;
             }
 
-            /* Thanh tìm kiếm + nút tạo đơn */
             .leave-section .top-bar {
                 display: flex;
                 justify-content: space-between;
@@ -156,7 +153,6 @@
                 background-color: #c82333;
             }
 
-            /* Ghi chú phê duyệt */
             .leave-section input[name="comment"] {
                 padding: 6px 10px;
                 width: 90%;
@@ -165,7 +161,6 @@
                 font-size: 13px;
             }
 
-            /* Nút quay lại */
             .leave-section a.back-link {
                 display: inline-block;
                 margin: 10px;
@@ -204,7 +199,6 @@
                 border-top-right-radius: 12px;
             }
 
-            /* Bo tròn góc dưới trái/phải của dòng cuối cùng */
             #calendar .fc-daygrid-body .fc-daygrid-day:last-child {
                 border-bottom-right-radius: 12px;
             }
@@ -212,8 +206,6 @@
                 border-bottom-left-radius: 12px;
             }
 
-
-            /* Tiêu đề tháng + nút điều hướng */
             #calendar .fc-toolbar-title {
                 font-size: 1.8rem;
                 font-weight: bold;
@@ -234,7 +226,6 @@
                 background-color: #eee;
             }
 
-            /* Header ngày trong tuần (T2 -> CN) */
             #calendar .fc-col-header-cell {
                 background-color: #6b46c1;
                 color: white;
@@ -250,7 +241,6 @@
                 width: 100%;
             }
 
-            /* Ô ngày */
             #calendar .fc-daygrid-day-frame {
                 padding: 6px;
                 height: 100px;
@@ -262,12 +252,10 @@
                 vertical-align: top;
             }
 
-            /* Nền ngày hôm nay */
             #calendar .fc-day-today {
                 background: #fdfdfd !important;
             }
 
-            /* Sự kiện */
             #calendar .fc-event {
                 background-color: #28a745;
                 color: white;
@@ -281,7 +269,6 @@
                 font-weight: 500;
             }
 
-            /* Màu sự kiện theo trạng thái */
             #calendar .fc-event-approved {
                 background-color: #28a745 !important;
             }
@@ -293,7 +280,6 @@
                 background-color: #dc3545 !important;
             }
 
-            /* Fix lỗi dư khoảng trắng ở cuối lịch */
             #calendar .fc-daygrid-body,
             #calendar .fc-daygrid-body-unbalanced,
             #calendar .fc-daygrid-body-natural {
@@ -306,7 +292,6 @@
                 min-height: unset !important;
             }
 
-            /* Tắt viền + overflow thừa */
             #calendar .fc-scrollgrid,
             #calendar .fc-scrollgrid-section,
             #calendar .fc-scrollgrid-sync-table,

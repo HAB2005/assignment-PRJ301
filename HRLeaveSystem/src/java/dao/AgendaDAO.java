@@ -131,36 +131,25 @@ public class AgendaDAO {
         return false;
     }
 
-    public void updateRequestStatus(int requestId, String newStatus, int approverId) {
+    public void insertApprovalIfNotExists(RequestApproval approval) {
         String checkApproval = "SELECT COUNT(*) FROM request_approvals WHERE request_id = ?";
-        String insertApproval = "INSERT INTO request_approvals(request_id, approver_id, decision) VALUES (?, ?, ?)";
+        String insertApproval = "INSERT INTO request_approvals(request_id, approver_id, decision, comments) VALUES (?, ?, ?, ?)";
 
         try (Connection con = DBConnection.getConnection(); PreparedStatement checkStmt = con.prepareStatement(checkApproval); PreparedStatement insertStmt = con.prepareStatement(insertApproval)) {
 
-            checkStmt.setInt(1, requestId);
+            checkStmt.setInt(1, approval.getRequestId());
             ResultSet rs = checkStmt.executeQuery();
 
             if (rs.next() && rs.getInt(1) == 0) {
-                // Chỉ insert nếu đơn chưa được duyệt trước đó
-                insertStmt.setInt(1, requestId);
-                insertStmt.setInt(2, approverId);
-                insertStmt.setString(3, newStatus);
+                insertStmt.setInt(1, approval.getRequestId());
+                insertStmt.setInt(2, approval.getApproverId());
+                insertStmt.setString(3, approval.getDecision());
+                insertStmt.setString(4, approval.getComments());
                 insertStmt.executeUpdate();
             }
 
         } catch (Exception e) {
-        }
-    }
-
-    public void insertApproval(RequestApproval approval) {
-        String sql = "INSERT INTO request_approvals (request_id, approver_id, decision, comments) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, approval.getRequestId());
-            ps.setInt(2, approval.getApproverId());
-            ps.setString(3, approval.getDecision());
-            ps.setString(4, approval.getComments());
-            ps.executeUpdate();
-        } catch (SQLException e) {
+            e.printStackTrace(); // Gợi ý: log lỗi để dễ debug
         }
     }
 

@@ -19,13 +19,8 @@ public class RequestDAO {
             stmt.setInt(1, request.getUserId());
             stmt.setDate(2, new java.sql.Date(request.getFromDate().getTime()));
             stmt.setDate(3, new java.sql.Date(request.getToDate().getTime()));
-
-            // Lấy ID từ đối tượng LeaveType
             stmt.setInt(4, request.getLeaveType().getLeaveTypeId());
-
             stmt.setString(5, request.getReason());
-            // Trạng thái: nếu không có, gán mặc định là "Chờ xử lý"
-
             stmt.executeUpdate();
         }
     }

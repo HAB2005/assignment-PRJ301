@@ -20,7 +20,6 @@
                 rememberedUsernames.add(uname);
                 userPassMap.put(uname, pwd);
 
-                // nếu là lần đầu chưa nhập gì thì gán cái đầu tiên làm mặc định
                 if (rememberedUsername.isEmpty()) {
                     rememberedUsername = uname;
                     rememberedPassword = pwd;
@@ -46,7 +45,6 @@
                 <p class="text-gray-600 mt-2">Please log in to continue</p>
             </div>
 
-            <!-- Hiển thị thông báo lỗi nếu có -->
             <c:if test="${not empty error}">
                 <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-xl text-sm">
                     ${error}
@@ -73,15 +71,11 @@
                     </ul>
                 </div>
 
-
-
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                     <input type="password" id="password" name="password" required
                            placeholder="Enter your password"
                            class="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400">
-
-
                 </div>
 
                 <div class="flex items-center justify-between text-sm">

@@ -39,7 +39,7 @@ public class CreateRequestServlet extends HttpServlet {
             leaveRequest.setUserId(user.getUserId());
             leaveRequest.setFromDate(fromDate);
             leaveRequest.setToDate(toDate);
-            leaveRequest.setLeaveType(leaveType); // gán đối tượng LeaveType
+            leaveRequest.setLeaveType(leaveType);
             leaveRequest.setReason(reason);
 
             // ✅ Gọi DAO
@@ -56,7 +56,6 @@ public class CreateRequestServlet extends HttpServlet {
             req.getRequestDispatcher("/common/createRequest.jsp").forward(req, resp);
 
         } catch (IOException | NumberFormatException | SQLException e) { // giúp debug
-            e.printStackTrace();
             req.setAttribute("error", "Có lỗi xảy ra khi gửi yêu cầu nghỉ phép.");
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
@@ -66,8 +65,8 @@ public class CreateRequestServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             LeaveTypeDAO leaveTypeDAO = new LeaveTypeDAO();
-            List<LeaveType> leaveTypes = leaveTypeDAO.getAll(); // Lấy danh sách từ DB
-            req.setAttribute("leaveTypes", leaveTypes); // Đưa vào request scope
+            List<LeaveType> leaveTypes = leaveTypeDAO.getAll();
+            req.setAttribute("leaveTypes", leaveTypes);
             req.getRequestDispatcher("/common/createRequest.jsp").forward(req, resp);
         } catch (ServletException | IOException | SQLException e) {
         }

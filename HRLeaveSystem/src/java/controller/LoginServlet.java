@@ -78,8 +78,9 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("features", features);
                 session.setAttribute("featureLinks", featureLinks);
                 session.setAttribute("department", user.getDepartment());
+                session.setAttribute("rolePath", rolePath);
 
-                response.sendRedirect("common/menu.jsp");
+                response.sendRedirect(request.getContextPath() + "/" + rolePath + "/menu");
 
             } else {
                 request.setAttribute("error", "Tài khoản hoặc mật khẩu không đúng!");
