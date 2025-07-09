@@ -80,6 +80,14 @@
         <servlet-name>adminCreateUser</servlet-name>
         <servlet-class>controller.CreateUserServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>adminEditUser</servlet-name>
+        <servlet-class>controller.EditUserServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>adminAssignPermission</servlet-name>
+        <servlet-class>controller.AssignPermission</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>
         <url-pattern>/login</url-pattern>
@@ -159,5 +167,13 @@
     <servlet-mapping>
         <servlet-name>adminCreateUser</servlet-name>
         <url-pattern>/admin/create_user</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>adminEditUser</servlet-name>
+        <url-pattern>/admin/edit_user</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>adminAssignPermission</servlet-name>
+        <url-pattern>/admin/assign_permissions</url-pattern>
     </servlet-mapping>
 </web-app>

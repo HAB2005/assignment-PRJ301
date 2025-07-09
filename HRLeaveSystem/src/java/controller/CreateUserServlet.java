@@ -42,11 +42,11 @@ public class CreateUserServlet extends HttpServlet {
             req.setAttribute("error", "❌ Đã xảy ra lỗi: " + e.getMessage());
         }
 
-        req.getRequestDispatcher("/common/createUser.jsp").forward(req, resp);
+        req.getRequestDispatcher("/common/userForm.jsp").forward(req, resp);
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/common/createUser.jsp").forward(req, resp);
+        req.getRequestDispatcher("/common/userForm.jsp").forward(req, resp);
     }
 }
