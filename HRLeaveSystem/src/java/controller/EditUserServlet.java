@@ -7,7 +7,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class EditUserServlet extends HttpServlet {
 
@@ -19,22 +22,26 @@ public class EditUserServlet extends HttpServlet {
 
         //Trường hợp 1: Chọn người để sửa (chỉ có userId, không có action)
         if (action == null || !action.equals("updateUser")) {
-            UserDAO userDAO = new UserDAO();
-            User u = userDAO.getUserById(Integer.parseInt(userId));
-
-            if (u != null) {
-                req.setAttribute("userId", u.getUserId());
-                req.setAttribute("username", u.getUsername());
-                req.setAttribute("password", u.getPassword());
-                req.setAttribute("email", u.getEmail());
-                req.setAttribute("fullname", u.getFullName());
-                req.setAttribute("mode", "edit");
-            } else {
-                req.setAttribute("error", "Không tìm thấy người dùng.");
+            try {
+                UserDAO userDAO = new UserDAO();
+                User u = userDAO.getUserById(Integer.parseInt(userId));
+                
+                if (u != null) {
+                    req.setAttribute("userId", u.getUserId());
+                    req.setAttribute("username", u.getUsername());
+                    req.setAttribute("password", u.getPassword());
+                    req.setAttribute("email", u.getEmail());
+                    req.setAttribute("fullname", u.getFullName());
+                    req.setAttribute("mode", "edit");
+                } else {
+                    req.setAttribute("error", "Không tìm thấy người dùng.");
+                }
+                
+                req.getRequestDispatcher("/common/userForm.jsp").forward(req, resp);
+                return;
+            } catch (SQLException ex) {
+                Logger.getLogger(EditUserServlet.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            req.getRequestDispatcher("/common/userForm.jsp").forward(req, resp);
-            return;
         }
 
         //Trường hợp 2: Submit cập nhật thông tin

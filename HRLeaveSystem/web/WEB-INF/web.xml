@@ -86,7 +86,7 @@
     </servlet>
     <servlet>
         <servlet-name>adminAssignPermission</servlet-name>
-        <servlet-class>controller.AssignPermission</servlet-class>
+        <servlet-class>controller.AssignPermissionServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>loginServlet</servlet-name>

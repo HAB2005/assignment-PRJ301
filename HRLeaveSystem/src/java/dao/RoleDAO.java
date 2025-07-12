@@ -66,4 +66,22 @@ public class RoleDAO {
         return roleNames;
     }
 
+    public List<Role> getAllRoles() {
+        List<Role> list = new ArrayList<>();
+        String sql = "SELECT role_id, role_name FROM roles";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Role r = new Role();
+                r.setRoleId(rs.getInt("role_id"));
+                r.setRoleName(rs.getString("role_name"));
+                list.add(r);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

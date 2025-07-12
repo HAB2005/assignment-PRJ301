@@ -28,4 +28,22 @@ public class FeatureDAO {
         }
         return features;
     }
+
+    public List<Feature> getAllFeatures() {
+        List<Feature> list = new ArrayList<>();
+        String sql = "SELECT feature_id, feature_name FROM features";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Feature f = new Feature();
+                f.setFeatureId(rs.getInt("feature_id"));
+                f.setFeatureName(rs.getString("feature_name"));
+                list.add(f);
+            }
+
+        } catch (Exception e) {
+        }
+        return list;
+    }
 }

@@ -1,6 +1,7 @@
 package dao;
 
 import entity.Department;
+import entity.Role;
 import entity.User;
 import java.sql.*;
 import java.util.ArrayList;
@@ -91,22 +92,155 @@ public class UserDAO {
         }
     }
 
-    public User getUserById(int userId) {
-        String sql = "SELECT * FROM users WHERE user_id = ?";
+    public User getUserById(int userId) throws SQLException {
+        String sql = """
+        SELECT u.user_id, u.username, u.password, u.full_name, u.email, u.manager_id,
+               d.department_id, d.department_name
+        FROM users u
+        LEFT JOIN departments d ON u.department_id = d.department_id
+        WHERE u.user_id = ?
+        """;
+
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 User u = new User();
                 u.setUserId(rs.getInt("user_id"));
                 u.setUsername(rs.getString("username"));
                 u.setPassword(rs.getString("password"));
-                u.setEmail(rs.getString("email"));
                 u.setFullName(rs.getString("full_name"));
+                u.setEmail(rs.getString("email"));
+                u.setManagerId((Integer) rs.getObject("manager_id"));
+
+                int deptId = rs.getInt("department_id");
+                if (deptId != 0) {
+                    Department dept = new Department();
+                    dept.setDepartmentId(deptId);
+                    dept.setDepartmentName(rs.getString("department_name"));
+                    u.setDepartment(dept);
+                }
+
                 return u;
             }
-        } catch (Exception e) {
         }
+
         return null;
     }
+
+    public List<Role> getManagerRoles() throws SQLException {
+        List<Role> list = new ArrayList<>();
+        String sql = "SELECT role_id, role_name FROM roles WHERE role_name IN ('General Manager', 'Department Head', 'Direct Manager')";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Role r = new Role();
+                r.setRoleId(rs.getInt("role_id"));
+                r.setRoleName(rs.getString("role_name"));
+                list.add(r);
+            }
+        }
+        return list;
+    }
+
+    public List<User> getAvailableManagers(int departmentId) throws SQLException {
+        List<User> list = new ArrayList<>();
+        String sql = """
+        SELECT u.user_id, u.full_name
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        WHERE (r.role_name IN ('Direct Manager', 'Department Head') AND u.department_id = ?)
+           OR r.role_name = 'General Manager'
+        """;
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, departmentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
+                    u.setUserId(rs.getInt("user_id"));
+                    u.setFullName(rs.getString("full_name"));
+                    list.add(u);
+                }
+            }
+        }
+        return list;
+    }
+
+    public boolean assignPermission(int userId, int departmentId, Integer managerId, int roleId, List<Integer> featureIds) {
+        String updateUserSql = "UPDATE users SET department_id=?, manager_id=? WHERE user_id=?";
+        String deleteRoleSql = "DELETE FROM user_roles WHERE user_id=?";
+        String insertRoleSql = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
+        String deleteFeatureSql = "DELETE FROM user_features WHERE user_id=?";
+        String insertFeatureSql = "INSERT INTO user_features (user_id, feature_id) VALUES (?, ?)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false); // bắt đầu transaction
+
+            try (
+                    PreparedStatement updateUserStmt = conn.prepareStatement(updateUserSql); PreparedStatement deleteRoleStmt = conn.prepareStatement(deleteRoleSql); PreparedStatement insertRoleStmt = conn.prepareStatement(insertRoleSql); PreparedStatement deleteFeatureStmt = conn.prepareStatement(deleteFeatureSql); PreparedStatement insertFeatureStmt = conn.prepareStatement(insertFeatureSql)) {
+                // 1. Cập nhật department và manager
+                updateUserStmt.setInt(1, departmentId);
+                if (managerId != null) {
+                    updateUserStmt.setInt(2, managerId);
+                } else {
+                    updateUserStmt.setNull(2, java.sql.Types.INTEGER);
+                }
+                updateUserStmt.setInt(3, userId);
+                updateUserStmt.executeUpdate();
+
+                // 2. Xóa role cũ
+                deleteRoleStmt.setInt(1, userId);
+                deleteRoleStmt.executeUpdate();
+
+                // 3. Gán role mới
+                insertRoleStmt.setInt(1, userId);
+                insertRoleStmt.setInt(2, roleId);
+                insertRoleStmt.executeUpdate();
+
+                // 4. Xóa feature cũ
+                deleteFeatureStmt.setInt(1, userId);
+                deleteFeatureStmt.executeUpdate();
+
+                // 5. Thêm các feature mới
+                for (int featureId : featureIds) {
+                    insertFeatureStmt.setInt(1, userId);
+                    insertFeatureStmt.setInt(2, featureId);
+                    insertFeatureStmt.addBatch();
+                }
+                insertFeatureStmt.executeBatch();
+
+                conn.commit();
+                return true;
+            } catch (Exception ex) {
+                conn.rollback();
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public List<User> getManagersByDepartment(int deptId) throws SQLException {
+        List<User> list = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+
+        String sql = "SELECT DISTINCT u.* FROM users u "
+                + "JOIN user_roles ur ON u.user_id = ur.user_id "
+                + "JOIN roles r ON ur.role_id = r.role_id "
+                + "WHERE u.department_id = ? AND r.role_name IN ('Department Head', 'Direct Manager')";
+
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, deptId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            User u = new User();
+            u.setUserId(rs.getInt("user_id"));
+            u.setFullName(rs.getString("full_name"));
+            list.add(u);
+        }
+        return list;
+    }
+
 }
