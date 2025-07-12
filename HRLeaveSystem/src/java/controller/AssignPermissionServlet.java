@@ -17,99 +17,9 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AssignPermissionServlet extends HttpServlet {
 
-//    @Override
-//    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//        try {
-//            int userId = Integer.parseInt(req.getParameter("userId"));
-//
-//            UserDAO userDAO = new UserDAO();
-//            DepartmentDAO departmentDAO = new DepartmentDAO();
-//            RoleDAO roleDAO = new RoleDAO();
-//            FeatureDAO featureDAO = new FeatureDAO();
-//
-//            User selectedUser = userDAO.getUserById(userId);
-//            List<Department> departments = departmentDAO.getAllDepartments();
-//            List<Role> roles = roleDAO.getAllRoles();
-//            List<Feature> features = featureDAO.getAllFeatures();
-//
-//            String deptRaw = req.getParameter("departmentId");
-//
-//            // Trường hợp đầu tiên: chỉ mới nhấn "Edit", chưa chọn gán quyền
-//            if (deptRaw == null) {
-//                List<User> managers = selectedUser.getDepartment() != null
-//                        ? userDAO.getAvailableManagers(selectedUser.getDepartment().getDepartmentId())
-//                        : new ArrayList<>();
-//
-//                req.setAttribute("selectedUser", selectedUser);
-//                req.setAttribute("departments", departments);
-//                req.setAttribute("managers", managers);
-//                req.setAttribute("roles", roles);
-//                req.setAttribute("features", features);
-//                req.setAttribute("selectedRoleId", null);
-//                req.setAttribute("assignedFeatureIds", new ArrayList<>());
-//                req.setAttribute("assignedFeatureString", ",");
-//
-//                req.getRequestDispatcher("/common/assignPermission.jsp").forward(req, resp);
-//                return;
-//            }
-//
-//            // Xử lý gán quyền (sau khi người dùng chọn xong và nhấn Submit)
-//            int departmentId = Integer.parseInt(deptRaw);
-//            int roleId = Integer.parseInt(req.getParameter("roleId"));
-//
-//            String managerIdRaw = req.getParameter("managerId");
-//            Integer managerId = (managerIdRaw != null && !managerIdRaw.isEmpty())
-//                    ? Integer.valueOf(managerIdRaw) : null;
-//
-//            String[] featureIdsRaw = req.getParameterValues("featureIds");
-//            List<Integer> featureIds = new ArrayList<>();
-//            if (featureIdsRaw != null) {
-//                for (String fid : featureIdsRaw) {
-//                    featureIds.add(Integer.valueOf(fid));
-//                }
-//            }
-//
-//            boolean success = userDAO.assignPermission(userId, departmentId, managerId, roleId, featureIds);
-//
-//            // Cập nhật lại dữ liệu sau khi gán quyền thành công/thất bại
-//            selectedUser = userDAO.getUserById(userId);
-//            List<User> managers = selectedUser.getDepartment() != null
-//                    ? userDAO.getAvailableManagers(selectedUser.getDepartment().getDepartmentId())
-//                    : new ArrayList<>();
-//
-//            // Chuỗi featureIds để dùng với fn:contains trong JSP
-//            StringBuilder sb = new StringBuilder(",");
-//            for (Integer fid : featureIds) {
-//                sb.append(fid).append(",");
-//            }
-//
-//            req.setAttribute("selectedUser", selectedUser);
-//            req.setAttribute("departments", departments);
-//            req.setAttribute("managers", managers);
-//            req.setAttribute("roles", roles);
-//            req.setAttribute("features", features);
-//            req.setAttribute("selectedRoleId", roleId);
-//            req.setAttribute("assignedFeatureIds", featureIds);
-//            req.setAttribute("assignedFeatureString", sb.toString());
-//
-//            if (success) {
-//                req.setAttribute("message", "Gán quyền thành công!");
-//            } else {
-//                req.setAttribute("error", "Gán quyền thất bại.");
-//            }
-//
-//            req.getRequestDispatcher("/common/assignPermission.jsp").forward(req, resp);
-//
-//        } catch (ServletException | IOException | NumberFormatException | SQLException ex) {
-//            Logger.getLogger(AssignPermissionServlet.class.getName()).log(Level.SEVERE, null, ex);
-//            throw new ServletException(ex);
-//        }
-//    }
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         System.out.println("=== AssignPermissionServlet: doPost called ===");

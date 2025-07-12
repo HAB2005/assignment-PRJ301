@@ -6,41 +6,91 @@ import entity.User;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.mindrot.jbcrypt.BCrypt;
 import util.DBConnection;
 
 public class UserDAO {
 
     private final RoleDAO roleDAO = new RoleDAO();
 
-    public User login(String username, String password) throws SQLException {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+//    public User login(String username, String password) throws SQLException {
+//        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+//        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+//
+//            stmt.setString(1, username);
+//            stmt.setString(2, password);
+//
+//            ResultSet rs = stmt.executeQuery();
+//
+//            if (rs.next()) {
+//                User user = new User();
+//                user.setUserId(rs.getInt("user_id"));
+//                user.setUsername(rs.getString("username"));
+//                user.setPassword(rs.getString("password"));
+//                user.setFullName(rs.getString("full_name"));
+//                user.setEmail(rs.getString("email"));
+//
+//                // Gán Department ID thông qua DAO
+//                int departmentId = rs.getInt("department_id");
+//                DepartmentDAO departmentDAO = new DepartmentDAO();
+//                Department department = departmentDAO.getDepartmentById(departmentId);
+//                user.setDepartment(department);
+//
+//                int managerId = rs.getInt("manager_id");
+//                user.setManagerId(rs.wasNull() ? null : managerId);
+//                user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
+//
+//                return user;
+//            }
+//            return null;
+//        }
+//    }
+
+    public User login(String username, String passwordInput) throws SQLException {
+        String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
-            stmt.setString(2, password);
-
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setUsername(rs.getString("username"));
-                user.setPassword(rs.getString("password"));
-                user.setFullName(rs.getString("full_name"));
-                user.setEmail(rs.getString("email"));
+                String dbPassword = rs.getString("password");
 
-                // Gán Department ID thông qua DAO
-                int departmentId = rs.getInt("department_id");
-                DepartmentDAO departmentDAO = new DepartmentDAO();
-                Department department = departmentDAO.getDepartmentById(departmentId);
-                user.setDepartment(department);
+                boolean matched;
 
-                int managerId = rs.getInt("manager_id");
-                user.setManagerId(rs.wasNull() ? null : managerId);
-                user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
+                // Kiểm tra xem password trong DB là hash hay plain text
+                if (dbPassword.startsWith("$2a$") || dbPassword.startsWith("$2b$") || dbPassword.startsWith("$2y$")) {
+                    // Là hash BCrypt → dùng checkpw
+                    matched = BCrypt.checkpw(passwordInput, dbPassword);
+                } else {
+                    // Là plain text → so sánh trực tiếp
+                    matched = passwordInput.equals(dbPassword);
+                }
 
-                return user;
+                if (matched) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setUsername(rs.getString("username"));
+                    user.setPassword(dbPassword);
+                    user.setFullName(rs.getString("full_name"));
+                    user.setEmail(rs.getString("email"));
+
+                    // Gán Department ID thông qua DAO
+                    int departmentId = rs.getInt("department_id");
+                    DepartmentDAO departmentDAO = new DepartmentDAO();
+                    Department department = departmentDAO.getDepartmentById(departmentId);
+                    user.setDepartment(department);
+
+                    int managerId = rs.getInt("manager_id");
+                    user.setManagerId(rs.wasNull() ? null : managerId);
+
+                    user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
+
+                    return user;
+                }
             }
+
+            // Sai mật khẩu hoặc không tồn tại username
             return null;
         }
     }
