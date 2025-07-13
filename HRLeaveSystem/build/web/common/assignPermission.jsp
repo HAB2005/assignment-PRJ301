@@ -124,6 +124,7 @@
             <label for="managerId">Quản lý:</label>
             <select name="managerId" id="managerId">
                 <option value="">-- Không có --</option>
+
                 <c:forEach var="m" items="${managers}">
                     <c:set var="selected" value="" />
                     <c:if test="${selectedUser.managerId != null and selectedUser.managerId == m.userId}">
@@ -154,8 +155,10 @@
 
             <div class="button-group">
                 <button type="submit" class="btn save-btn">Lưu thay đổi</button>
-                <a href="${pageContext.request.contextPath}/${rolePath}/menu" class="btn back-btn">Quay lại</a>
+                <a href="${pageContext.request.contextPath}/${rolePath}/menu" class="btn back-btn">Về menu</a>
+                <a href="${pageContext.request.contextPath}/${rolePath}/assign_permissions" class="btn back-btn">Danh sách người dùng</a>
             </div>
+
 
         </form>
 

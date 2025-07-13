@@ -67,51 +67,51 @@
                 margin-top: 30px;
             }
 
-            .submit-btn,
-            .back-btn {
+            .button-group .btn {
                 min-width: 160px;
-                padding: 12px 24px;
+                height: auto;
+                padding: 12px 16px;
                 border-radius: 10px;
                 font-size: 15px;
                 font-weight: 600;
                 text-align: center;
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
                 transition: all 0.3s ease;
+                cursor: pointer;
+                box-sizing: border-box;
+                text-decoration: none;
+                white-space: normal; /* ✅ Cho phép xuống dòng */
+                word-break: break-word; /* ✅ Nếu dài quá thì ngắt từ */
+                text-align: center;
+                line-height: 1.4;
             }
 
             /* Nút submit */
-            .submit-btn {
+            .btn-submit {
                 background-color: #6b46c1;
                 color: white;
                 border: none;
-                cursor: pointer;
             }
 
-            .submit-btn:hover {
+            .btn-submit:hover {
                 background-color: #5a2aa5;
             }
 
-            /* Nút quay lại */
-            .back-btn {
-                display: inline-block;
+            /* Nút quay lại và danh sách */
+            .btn-back,
+            .btn-list {
                 background-color: transparent;
                 color: #6b46c1;
                 border: 2px solid #6b46c1;
                 text-decoration: none;
-                line-height: 42px; /* Giúp căn giữa văn bản nếu cần */
-                cursor: pointer;
             }
 
-            .back-btn:hover {
+            .btn-back:hover,
+            .btn-list:hover {
                 background-color: #6b46c1;
                 color: white;
-            }
-
-            .message {
-                margin-top: 20px;
-                font-weight: bold;
-                text-align: center;
-                padding: 10px;
-                border-radius: 8px;
             }
 
             .message.success {
@@ -133,7 +133,7 @@
                 <c:otherwise>Tạo người dùng mới</c:otherwise>
             </c:choose>
         </h2>
-        
+
         <form action="<c:choose>
                   <c:when test='${mode == "edit"}'>edit_user</c:when>
                   <c:otherwise>create_user</c:otherwise>
@@ -148,7 +148,7 @@
             <input type="text" id="username" name="username" required value="${username}" />
 
             <label for="password">Mật khẩu:</label>
-            <input type="password" id="password" name="password" required value="${password}" />
+            <input type="password" id="password" name="password" value="${password}" />
 
             <label for="fullname">Họ và tên:</label>
             <input type="text" id="fullname" name="fullname" required value="${fullname}" />
@@ -174,9 +174,10 @@
             </c:choose>
 
             <div class="button-group">
-                <input type="submit" class="submit-btn" value="${submitLabel}" />
+                <button type="submit" class="btn btn-submit">${submitLabel}</button>
                 <input type="hidden" name="action" value="updateUser" />
-                <a href="${pageContext.request.contextPath}/${rolePath}/menu" class="back-btn">Quay lại</a>
+                <a href="${pageContext.request.contextPath}/${rolePath}/menu" class="btn btn-back">Quay lại</a>
+                <a href="${pageContext.request.contextPath}/${rolePath}/edit_user" class="btn btn-list">Danh sách người dùng</a>
             </div>
 
         </form>

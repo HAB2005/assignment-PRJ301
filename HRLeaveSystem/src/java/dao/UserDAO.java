@@ -1,5 +1,6 @@
 package dao;
 
+import util.CryptoUtil;
 import entity.Department;
 import entity.Role;
 import entity.User;
@@ -13,39 +14,6 @@ public class UserDAO {
 
     private final RoleDAO roleDAO = new RoleDAO();
 
-//    public User login(String username, String password) throws SQLException {
-//        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-//        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-//
-//            stmt.setString(1, username);
-//            stmt.setString(2, password);
-//
-//            ResultSet rs = stmt.executeQuery();
-//
-//            if (rs.next()) {
-//                User user = new User();
-//                user.setUserId(rs.getInt("user_id"));
-//                user.setUsername(rs.getString("username"));
-//                user.setPassword(rs.getString("password"));
-//                user.setFullName(rs.getString("full_name"));
-//                user.setEmail(rs.getString("email"));
-//
-//                // Gán Department ID thông qua DAO
-//                int departmentId = rs.getInt("department_id");
-//                DepartmentDAO departmentDAO = new DepartmentDAO();
-//                Department department = departmentDAO.getDepartmentById(departmentId);
-//                user.setDepartment(department);
-//
-//                int managerId = rs.getInt("manager_id");
-//                user.setManagerId(rs.wasNull() ? null : managerId);
-//                user.setRoles(roleDAO.getRolesByUser(user.getUserId()));
-//
-//                return user;
-//            }
-//            return null;
-//        }
-//    }
-
     public User login(String username, String passwordInput) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -56,26 +24,30 @@ public class UserDAO {
             if (rs.next()) {
                 String dbPassword = rs.getString("password");
 
-                boolean matched;
-
-                // Kiểm tra xem password trong DB là hash hay plain text
-                if (dbPassword.startsWith("$2a$") || dbPassword.startsWith("$2b$") || dbPassword.startsWith("$2y$")) {
-                    // Là hash BCrypt → dùng checkpw
-                    matched = BCrypt.checkpw(passwordInput, dbPassword);
-                } else {
-                    // Là plain text → so sánh trực tiếp
-                    matched = passwordInput.equals(dbPassword);
-                }
-
-                if (matched) {
+                // Mặc định: password trong DB là BCrypt hash
+                if (BCrypt.checkpw(passwordInput, dbPassword)) {
                     User user = new User();
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
-                    user.setPassword(dbPassword);
-                    user.setFullName(rs.getString("full_name"));
-                    user.setEmail(rs.getString("email"));
+                    user.setPassword(dbPassword); // hoặc bỏ qua nếu không dùng
 
-                    // Gán Department ID thông qua DAO
+                    user.setFullName(rs.getString("full_name"));
+
+                    // ✅ Giải mã email nếu cần
+                    String emailInDb = rs.getString("email");
+                    if (emailInDb != null && emailInDb.startsWith("ENC:")) {
+                        try {
+                            String encryptedPart = emailInDb.substring(4); // bỏ "ENC:"
+                            String decryptedEmail = CryptoUtil.decrypt(encryptedPart);
+                            user.setEmail(decryptedEmail);
+                        } catch (Exception e) {
+                            user.setEmail("Lỗi giải mã email");
+                        }
+                    } else {
+                        user.setEmail(emailInDb); // email chưa mã hóa
+                    }
+
+                    // Gán phòng ban
                     int departmentId = rs.getInt("department_id");
                     DepartmentDAO departmentDAO = new DepartmentDAO();
                     Department department = departmentDAO.getDepartmentById(departmentId);
@@ -112,30 +84,65 @@ public class UserDAO {
     public List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
         String sql = "SELECT user_id, username, password, email, full_name FROM users";
+
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 User u = new User();
                 u.setUserId(rs.getInt("user_id"));
                 u.setUsername(rs.getString("username"));
                 u.setPassword(rs.getString("password"));
-                u.setEmail(rs.getString("email"));
+
+                // ✅ Giải mã email nếu có mã hóa
+                String rawEmail = rs.getString("email");
+                if (rawEmail != null && rawEmail.startsWith("ENC:")) {
+                    try {
+                        String decryptedEmail = CryptoUtil.decrypt(rawEmail.substring(4));
+                        u.setEmail(decryptedEmail);
+                    } catch (Exception e) {
+                        u.setEmail("Lỗi giải mã");
+                    }
+                } else {
+                    u.setEmail(rawEmail);
+                }
+
                 u.setFullName(rs.getString("full_name"));
 
                 list.add(u);
             }
         } catch (Exception e) {
         }
+
         return list;
     }
 
     public boolean updateUser(int userId, String username, String password, String email, String fullname) {
         String sql = "UPDATE users SET username=?, password=?, email=?, full_name=? WHERE user_id=?";
+
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // ✅ Kiểm tra xem mật khẩu đã hash chưa
+            String finalPassword = password;
+            if (!(password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$"))) {
+                finalPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            }
+
+            // ✅ Mã hóa email nếu chưa mã hóa
+            String finalEmail = email;
+            try {
+                if (!email.startsWith("ENC:")) {
+                    finalEmail = "ENC:" + CryptoUtil.encrypt(email);
+                }
+            } catch (Exception ex) {
+                return false;
+            }
+
             ps.setString(1, username);
-            ps.setString(2, password);
-            ps.setString(3, email);
+            ps.setString(2, finalPassword);
+            ps.setString(3, finalEmail);
             ps.setString(4, fullname);
             ps.setInt(5, userId);
+
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             return false;

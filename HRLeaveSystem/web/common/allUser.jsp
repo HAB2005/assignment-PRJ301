@@ -143,7 +143,7 @@
                     <tr>
                         <td>${u.userId}</td>
                         <td>${u.username}</td>
-                        <td>${u.password}</td>
+                        <td>********</td>
                         <td>${u.email}</td>
                         <td>${u.fullName}</td>
                         <td>
