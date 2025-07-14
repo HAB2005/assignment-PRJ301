@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
 <html>
     <head>
         <title>Menu</title>
@@ -178,12 +180,16 @@
                 font-weight: 600;
                 font-size: 15px;
             }
-            
+
             ul li {
                 border: 1px solid #eee;
             }
 
-
+            #notification-panel.show {
+                opacity: 1;
+                transform: translateY(0);
+                visibility: visible;
+            }
         </style>
     </head>
     <body>
@@ -193,8 +199,8 @@
         <div id="notification-icon">
             <button onclick="toggleNotifications()">
                 🔔 Notification
-                <c:if test="${not empty notifications}">
-                    <span>${notifications.size()}</span>
+                <c:if test="${unreadCount > 0}">
+                    <span id="notification-count">${unreadCount}</span>
                 </c:if>
             </button>
         </div>
@@ -208,10 +214,13 @@
                     </c:when>
                     <c:otherwise>
                         <c:forEach var="n" items="${notifications}">
-                            <div onclick="location.href = '${pageContext.request.contextPath}/${n.actionLink}'">
-                                <div class="title">${n.title}</div>
-                                <div class="message">${n.message}</div>
-                                <div class="timestamp">${n.timestamp}</div>
+                            <div class="notification-item ${n.read ? '' : 'unread'}"
+                                 style="padding: 10px; border-bottom: 1px solid #ccc; cursor: pointer;"
+                                 onclick="location.href = '#'"> <!-- TODO: cập nhật action nếu có -->
+                                <div class="message" style="font-weight: bold;">${n.message}</div>
+                                <div class="timestamp" style="font-size: 12px; color: gray;">
+                                    <fmt:formatDate value="${n.createdAt}" pattern="HH:mm dd/MM/yyyy" />
+                                </div>
                             </div>
                         </c:forEach>
                     </c:otherwise>
@@ -241,8 +250,12 @@
 
             function toggleNotifications() {
                 const panel = document.getElementById("notification-panel");
+                const countSpan = document.getElementById("notification-count");
 
-                if (panelVisible) {
+                const isVisible = panel.style.visibility === "visible";
+
+                // Toggle panel
+                if (isVisible) {
                     panel.style.opacity = "0";
                     panel.style.transform = "translateY(-20px)";
                     panel.style.visibility = "hidden";
@@ -250,10 +263,48 @@
                     panel.style.opacity = "1";
                     panel.style.transform = "translateY(0)";
                     panel.style.visibility = "visible";
-                }
 
-                panelVisible = !panelVisible;
+                    // Gửi yêu cầu đánh dấu là đã đọc
+                    fetch('<c:url value="/api/mark-read" />', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                            .then(response => {
+                                if (response.ok) {
+                                    // ✅ Ẩn số thông báo sau khi đánh dấu
+                                    if (countSpan) {
+                                        countSpan.style.display = "none";
+                                    }
+                                } else {
+                                    console.error("Không đánh dấu được thông báo");
+                                }
+                            })
+                            .catch(err => console.error("Lỗi fetch:", err));
+                }
             }
+
+            // Đóng panel nếu click ra ngoài
+            document.addEventListener("click", function (event) {
+                const panel = document.getElementById("notification-panel");
+                const icon = document.getElementById("notification-icon");
+                if (!panel.contains(event.target) && !icon.contains(event.target)) {
+                    panel.style.opacity = "0";
+                    panel.style.transform = "translateY(-20px)";
+                    panel.style.visibility = "hidden";
+                }
+            });
+
+            // Đóng panel nếu click bên ngoài
+            document.addEventListener("click", function (event) {
+                const panel = document.getElementById("notification-panel");
+                const icon = document.getElementById("notification-icon");
+
+                if (!panel.contains(event.target) && !icon.contains(event.target)) {
+                    panel.classList.remove("show");
+                }
+            });
 
             document.addEventListener("click", function (event) {
                 const panel = document.getElementById("notification-panel");

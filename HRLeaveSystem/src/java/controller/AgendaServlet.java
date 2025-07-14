@@ -2,9 +2,11 @@ package controller;
 
 import dao.AgendaDAO;
 import dao.DepartmentDAO;
+import dao.NotificationDAO;
 import dao.RequestDAO;
 import dao.RoleDAO;
 import entity.Department;
+import entity.Notification;
 import entity.Request;
 import entity.RequestApproval;
 import entity.User;
@@ -19,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.sql.Timestamp;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AgendaServlet extends HttpServlet {
 
@@ -120,6 +125,64 @@ public class AgendaServlet extends HttpServlet {
         }
     }
 
+//    @Override
+//    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+//            throws ServletException, IOException {
+//
+//        req.setCharacterEncoding("UTF-8");
+//
+//        HttpSession session = req.getSession(false);
+//        if (session == null || session.getAttribute("user") == null) {
+//            resp.sendRedirect(req.getContextPath() + "/common/login.jsp");
+//            return;
+//        }
+//
+//        User currentUser = (User) session.getAttribute("user");
+//        String requestIdParam = req.getParameter("requestId");
+//        String action = req.getParameter("action");
+//        String comment = req.getParameter("comment");
+//        String userIdParam = req.getParameter("userId");
+//
+//        String servletPath = req.getServletPath();
+//        System.out.println(servletPath);
+//        String[] pathParts = servletPath.split("/");
+//
+//        String featureName = pathParts.length > 2 ? pathParts[2] : "";
+//
+//        int targetUserId;
+//        try {
+//            targetUserId = Integer.parseInt(userIdParam);
+//        } catch (NumberFormatException e) {
+//            resp.sendRedirect(req.getContextPath() + servletPath);
+//            return;
+//        }
+//
+//        if (requestIdParam != null && action != null) {
+//            try {
+//                int requestId = Integer.parseInt(requestIdParam);
+//
+//                boolean canApprove = "view_and_approve_subordinates'_agenda".equals(featureName)
+//                        && targetUserId != currentUser.getUserId()
+//                        && agendaDAO.hasApprovalPermission(currentUser.getUserId());
+//
+//                if (canApprove) {
+//                    RequestApproval approval = new RequestApproval();
+//                    approval.setRequestId(requestId);
+//                    approval.setApproverId(currentUser.getUserId());
+//                    approval.setDecision(action);
+//                    approval.setComments(comment);
+//
+//                    agendaDAO.insertApprovalIfNotExists(approval);
+//                } else {
+//                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền duyệt đơn này.");
+//                    return;
+//                }
+//            } catch (NumberFormatException e) {                
+//            }
+//        }
+//
+//        resp.sendRedirect(req.getContextPath() + servletPath + "?userId=" + targetUserId);
+//    }
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -139,7 +202,6 @@ public class AgendaServlet extends HttpServlet {
         String userIdParam = req.getParameter("userId");
 
         String servletPath = req.getServletPath();
-        System.out.println(servletPath);
         String[] pathParts = servletPath.split("/");
 
         String featureName = pathParts.length > 2 ? pathParts[2] : "";
@@ -168,11 +230,30 @@ public class AgendaServlet extends HttpServlet {
                     approval.setComments(comment);
 
                     agendaDAO.insertApprovalIfNotExists(approval);
+
+                    // ✅ Gửi thông báo sau khi duyệt
+                    String message = "Đơn xin nghỉ của bạn đã được "
+                            + (action.equalsIgnoreCase("approved") ? "phê duyệt" : "từ chối")
+                            + " bởi " + currentUser.getFullName();
+
+                    Notification notification = new Notification();
+                    notification.setUserId(targetUserId);
+                    notification.setMessage(message);
+                    notification.setIsRead(false); // chưa đọc
+                    notification.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+
+                    NotificationDAO notificationDAO = new NotificationDAO();
+                    try {
+                        notificationDAO.addNotification(notification);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AgendaServlet.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 } else {
                     resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền duyệt đơn này.");
                     return;
                 }
-            } catch (NumberFormatException e) {                
+            } catch (NumberFormatException e) {
+                throw new ServletException("Lỗi xử lý đơn và tạo thông báo", e);
             }
         }
 
