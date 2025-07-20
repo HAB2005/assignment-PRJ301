@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import util.CryptoUtil;
 
 public class AgendaDAO {
 
@@ -44,7 +45,19 @@ public class AgendaDAO {
                 u.setUsername(rs.getString("username"));
                 u.setPassword(rs.getString("password"));
                 u.setFullName(rs.getString("full_name"));
-                u.setEmail(rs.getString("email"));
+                String encryptedEmail = rs.getString("email");
+                if (encryptedEmail != null && encryptedEmail.startsWith("ENC:")) {
+                    try {
+                        String base64Part = encryptedEmail.substring(4); // loại bỏ "ENC:"
+                        u.setEmail(CryptoUtil.decrypt(base64Part));
+                    } catch (Exception e) {
+                        u.setEmail("Error decrypting");
+                        e.printStackTrace(); // để dễ debug
+                    }
+                } else {
+                    u.setEmail(encryptedEmail); // Có thể là email plaintext
+                }
+
                 u.setManagerId(rs.getInt("manager_id"));
 
                 // Gán department
@@ -149,7 +162,6 @@ public class AgendaDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace(); // Gợi ý: log lỗi để dễ debug
         }
     }
 

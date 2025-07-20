@@ -125,64 +125,6 @@ public class AgendaServlet extends HttpServlet {
         }
     }
 
-//    @Override
-//    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-//            throws ServletException, IOException {
-//
-//        req.setCharacterEncoding("UTF-8");
-//
-//        HttpSession session = req.getSession(false);
-//        if (session == null || session.getAttribute("user") == null) {
-//            resp.sendRedirect(req.getContextPath() + "/common/login.jsp");
-//            return;
-//        }
-//
-//        User currentUser = (User) session.getAttribute("user");
-//        String requestIdParam = req.getParameter("requestId");
-//        String action = req.getParameter("action");
-//        String comment = req.getParameter("comment");
-//        String userIdParam = req.getParameter("userId");
-//
-//        String servletPath = req.getServletPath();
-//        System.out.println(servletPath);
-//        String[] pathParts = servletPath.split("/");
-//
-//        String featureName = pathParts.length > 2 ? pathParts[2] : "";
-//
-//        int targetUserId;
-//        try {
-//            targetUserId = Integer.parseInt(userIdParam);
-//        } catch (NumberFormatException e) {
-//            resp.sendRedirect(req.getContextPath() + servletPath);
-//            return;
-//        }
-//
-//        if (requestIdParam != null && action != null) {
-//            try {
-//                int requestId = Integer.parseInt(requestIdParam);
-//
-//                boolean canApprove = "view_and_approve_subordinates'_agenda".equals(featureName)
-//                        && targetUserId != currentUser.getUserId()
-//                        && agendaDAO.hasApprovalPermission(currentUser.getUserId());
-//
-//                if (canApprove) {
-//                    RequestApproval approval = new RequestApproval();
-//                    approval.setRequestId(requestId);
-//                    approval.setApproverId(currentUser.getUserId());
-//                    approval.setDecision(action);
-//                    approval.setComments(comment);
-//
-//                    agendaDAO.insertApprovalIfNotExists(approval);
-//                } else {
-//                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền duyệt đơn này.");
-//                    return;
-//                }
-//            } catch (NumberFormatException e) {                
-//            }
-//        }
-//
-//        resp.sendRedirect(req.getContextPath() + servletPath + "?userId=" + targetUserId);
-//    }
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
