@@ -243,7 +243,10 @@
         </ul>
 
         <!-- 🚪 Logout -->
-        <a href="${pageContext.request.contextPath}/login">Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/logout"
+           style="display: block; width: fit-content; margin: 20px auto 0 auto; padding: 10px 20px; background-color: #6b46c1; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; text-align: center;">
+            Đăng xuất
+        </a>
 
         <script>
             let panelVisible = false;
