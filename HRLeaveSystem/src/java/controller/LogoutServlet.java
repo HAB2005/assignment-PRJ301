@@ -13,11 +13,11 @@ public class LogoutServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false); // lấy session nếu có
+        HttpSession session = request.getSession(false); 
         if (session != null) {
-            session.invalidate(); // hủy session
+            session.invalidate(); 
         }
 
-        response.sendRedirect(request.getContextPath() + "/login"); // chuyển về trang đăng nhập
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 }
